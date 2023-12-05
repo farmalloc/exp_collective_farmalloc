@@ -1,0 +1,3 @@
+[submodule "artifact"]
+	path = artifact
+	url = git@github.com:farmalloc/collective_farmalloc.git
