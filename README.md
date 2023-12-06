@@ -6,21 +6,20 @@ Artifact for "Collective Allocator Abstraction to Control Object Spatial Localit
 
 ## Components
 
-* `artifact`
-  * `farmalloc_abst`: コンテナがcollective allocatorの機能を呼び出す際に用いる `collective_allocator_traits` の定義がある。これはC++標準のアロケータ抽象化における `std::allocator` を、collective allocator抽象化において具現化したものである。
-  * `farmalloc_impl`: collective allocatorと、実験で比較のために用いたhint-onlyなアロケータの実装がある。
-    * `umap`: remote swapping at the user levelの実装に用いた外部ライブラリUMapがsubmoduleとしてある。
-  * `far_memory_container`: 論文の5.2章で述べたcontainer implementationsがある。
-  * `util`: `farmalloc_impl` と `far_memory_container` で使われる小さなユーティリティがある。
-  * `tests`
-* `include`: 複数の実験で共有されるパラメータや処理の記述
-* `src`: 主にベンチマークプログラム集
-  * `read.cpp`: ベンチマークプログラムでない例外。データを値渡しで受け取って何もしない関数を別のソースファイルに分けることで、読み出しがコンパイル最適化によって消されないようにする
-  * `analyze_edges_of_*.cpp`: 論文の図9のための計測プログラム。オブジェクト配置戦略の違いとB木/スキップリストの区別によって別のファイルに分かれている。
-  * the others: key-value store benchmarkのプログラム。オブジェクト配置戦略の違いとB木/スキップリストの区別によって別のファイルに分かれている。
+* `library`: far-memoryシステム向けcollective allocatorの実装
+  * `library/farmalloc_impl/umap`: source code of [UMap](git@github.com:farmalloc/umap.git), an external library of user-level page cache
+* `include/far_memory_container`: collective allocatorを使ったB木・スキップリストの実装の様々なバリエーション。論文の5.2章で示したものに対応する(下の表)
+  |名前|実装しているファイル|
+  |:-|:-|
+  |`hint B-tree`|`include/far_memory_container/baseline/b_tree.hpp` <br> `include/far_memory_container/baseline/b_tree.ipp` ...|
+  |TODO||
+* `include`: ベンチマークで用いるデータ生成のプログラム
+* `src`: 主にベンチマークプログラム集。詳細は[step-by-step instructions](#step-by-step-instructions)
+  * corss-page linksの評価(図9)のための計測プログラム
+  * スワップの回数を計測する(図10--12)プログラム
 * `scripts`: パラメータを設定しベンチマークプログラムを実行するスクリプト集。詳細は[step-by-step instructions](#step-by-step-instructions)を参照。
 
-なお、使用したバージョンのUMapにはバグがあったため修正を施した。詳しくは `git -C artifact/farmalloc_impl/umap diff cb294ef` を参照されたい。
+なお、使用したバージョンのUMapにはバグがあったため修正を施した。詳しくは `git -C library/farmalloc_impl/umap diff cb294ef` を参照されたい。
 
 ## Getting Started Guide
 
@@ -135,6 +134,8 @@ Parameters
                 when STRUCTURE is skiplist, one of {hint, local, local+page,
                                                     page}
 ```
+
+このスクリプトは、 `src` ディレクトリの下のソースファイルをコンパイルしたものを実行している。
 
 
 ### Reduction of Remote Swapping
