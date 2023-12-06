@@ -94,4 +94,72 @@ $ git clone --recurse-submodules git@github.com:farmalloc/exp_collective_farmall
 
 
 ## Overview of Claims
+
+論文のEvaluation (5章) 冒頭に書いた通り、claimは次の2つである。
+
+1.  Our collective allocator abstraction is sufficiently expressive to implement various object placement strategies in a modular manner.
+    * step-by-step instructions -> [Expressiveness](#expressiveness)
+2.  Using the collective allocator appropriately for object placement aware of the far-memory model actually benefits to reducing remote swapping.
+    * step-by-step instructions -> [Reduction of Remote Swapping](#reduction-of-remote-swapping)
+
+
 ## Step-by-Step Instructions
+### Expressiveness
+#### Figure 9
+
+図9は `scripts/analyze_edges.sh` を用いて再現できる。例えば図9aの `hint` の結果は次のコマンドで再現できる。
+
+```bash
+/workdir$ ./scripts/analyze_edges.sh btree hint
+```
+
+上記のコマンドは下のような出力をする。
+
+```
+###analyze_edges_of_local+dfs_btree###
+#NumElements    PurelyLocalCapacity[B]  batch_blocking  construction_duration[ns]       purely_local_edges      same_page_edges diff_pages_edges
+13421773        2147483712      1       85143447311     5592382 0       4473384
+```
+
+出力中の右から1, 2, 3番目の値が、それぞれ *cross-page link*, *in-page link*, *purely-local link* の個数を示している。図9aに書かれた数字はこれらの比率である。
+
+他の結果は `scripts/analyze_edges.sh` に与えるパラメータを変えることで再現される。当該スクリプトのパラメータの意味は下記の通りである。コマンド例の `btree` を `skiplist` に変えると図9bの結果が得られるようになり、 `hint` を `local` など他のcontainer variantの名前に変えると対応する結果が得られる。
+
+```
+Usage: analyze_edges.sh STRUCTURE OBJ_PLMT
+
+Parameters
+    STRUCTURE:  one of {btree, skiplist}
+    OBJ_PLMT:   when STRUCTURE is btree, one of {hint, local, local+dfs, dfs,
+                                                 local+veb, veb}
+                when STRUCTURE is skiplist, one of {hint, local, local+page,
+                                                    page}
+```
+
+
+### Reduction of Remote Swapping
+
+```bash
+/workdir$ ./scripts/kvs_benchmark.sh btree local+dfs 200 1.3 0.05
+```
+
+```
+###analyze_edges_of_local+dfs_btree###
+#NumElements    PurelyLocalCapacity[B]  batch_blocking  construction_duration[ns]       purely_local_edges      same_page_edges diff_pages_edges
+13421773        2147483712      1       85143447311     5592382 0       4473384
+```
+
+```
+Usage: kvs_benchmark.sh STRUCTURE OBJ_PLMT LOCAL_MEM_CAP ZIPF_SKEWNESS UPDATE_RATIO
+
+Parameters
+    STRUCTURE:      one of {btree, skiplist}
+    OBJ_PLMT:       when STRUCTURE is btree, one of {hint, local, local+dfs, dfs,
+                                                     local+veb, veb}
+                    when STRUCTURE is skiplist, one of {hint, local, local+page,
+                                                        page}
+    LOCAL_MEM_CAP:  PERSENTAGE (unsignd integer) of local memory usage to the
+                    total data size
+    ZIPF_SKEWNESS:  one of {0.8, 1.3}
+    UPDATE_RATIO:   one of {0.05, 0.5}
+```

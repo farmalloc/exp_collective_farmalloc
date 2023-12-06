@@ -7,10 +7,11 @@ function exit_with_help {
 Usage: $(basename $0) STRUCTURE OBJ_PLMT
 
 Parameters
-    STRUCTURE: one of {btree, skiplist}
-    OBJ_PLMT: when STRUCTURE is btree, one of {hint, local, local+dfs, dfs,
-                                               local+veb, veb}
-              when STRUCTURE is skiplist, one of {hint, local, local+page, page}
+    STRUCTURE:  one of {btree, skiplist}
+    OBJ_PLMT:   when STRUCTURE is btree, one of {hint, local, local+dfs, dfs,
+                                                 local+veb, veb}
+                when STRUCTURE is skiplist, one of {hint, local, local+page,
+                                                    page}
 __EOS__
     exit 1
 }
