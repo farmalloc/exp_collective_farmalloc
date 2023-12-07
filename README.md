@@ -4,8 +4,10 @@ Artifact for "Collective Allocator Abstraction to Control Object Spatial Localit
 * authors: Takato Hideshima, Shigeyuki Sato, Tomoharu Ugawa
 * submitted-to: ‹Programming› 2024
 
-## Components
 
+## Getting Started Guide
+
+## Components (削除)
 * `library`: far-memoryシステム向けcollective allocatorの実装
   * `library/farmalloc_impl/umap`: source code of [UMap](git@github.com:farmalloc/umap.git), an external library of user-level page cache
 * `include/far_memory_container`: collective allocatorを使ったB木・スキップリストの実装の様々なバリエーション。論文の5.2章で示したものに対応する(下の表)
@@ -21,12 +23,36 @@ Artifact for "Collective Allocator Abstraction to Control Object Spatial Localit
 
 なお、使用したバージョンのUMapにはバグがあったため修正を施した。詳しくは `git -C library/farmalloc_impl/umap diff cb294ef` を参照されたい。
 
-## Getting Started Guide
+### Components
 
+The artifact is provided as a Docker image.
+The image contains three main components:
+
+  * The collective allocator library, which is the artifact.
+  * Variety of B-tree and skip list implementations using the collective allocator library. They are listed in Section 5.2 in the paper.
+  * Benchmarking related programs and scripts, including benchmark drivers (programs that uses the B-trees and the skip lists).
+ 
+In addition, a git repository of [UMap](git@github.com:farmalloc/umap.git), a user-level page cache library, with our bug fix (commit cb294ef) is included.
+These components are placed in the following directories in the default user's home directory:
+
+  * `library`: the collective allocator library
+  * `library/marmalloc_impl/umap`: UMap library
+  * `include/far_memory_container`: B-tree and skip list implementations
+  * `include`: benchmarking related programs (data generator)
+  * `src`: benchmarking related programs (benchmark drivers)
+  * `scripts`: benchmarking related programs (scripts)
+
+### Play around 
+
+Let's install the building environment, build the artifact, and play around the benchmark program.
 ここでは、artifactのインストール、バイナリのビルド、実験の小さな一部の実行までの手順を記述する。
 
-### Installation
+#### Installation
 
+The source code of the artifact and all necessary packages are installed in the Docker image.
+
+  1. Download the ZIP file from [here](TODO: link) and unpack it. The Docker image `collective_farmalloc` and a security option file `docker_seccomp.json` will be extracted.
+  2. Run the Docker image with the following commands.
 \[dockerイメージ\]\(TODO: link\)を用いて次のコマンドを実行する。
 
 ```bash
@@ -35,19 +61,33 @@ docker run -it \
   --security-opt seccomp=./docker_seccomp.json \
   collective_farmalloc  # name of docker image
 ```
-
+Note: Because the far-memory library calls the `userfaultfd` system call,
+we allow it by using `sysctl` and the security option (`--security-opt`). You can confirm validity of the security
+option in `docker_seccomp.json` by comparing it with the [default setting](https://github.com/moby/moby/blob/2a38569337f97168792b8c0b5dd606032fe1dcac/profiles/seccomp/default.json).
 `userfaultfd` システムコールを呼べるようにするために、カーネルとコンテナランタイムそれぞれでパラメータの設定が必要である。
 コンテナランタイムの設定の[デフォルト値](https://github.com/moby/moby/blob/2a38569337f97168792b8c0b5dd606032fe1dcac/profiles/seccomp/default.json)からの差分は、 `syscalls > names` に `userfaultfd` を加えたことだけである。
 
 <!-- リポジトリのREADMEを兼ねたいので、邪魔にならないようにこちらも書く -->
 <details>
-<summary>Gitを用いる場合</summary>
+<summary>Gitを用いる場合 Try without Docker</summary>
 
+#### Prerequisites
+
+  * Linux (ubuntu 22.04)
+  * CMake (version 3.13 or later)
+  * Make or Ninja
+  * C++ compiler (C++20 support is required; tested with gcc 12.3.0)
+
+#### Download the artifact
+
+Clone our git repository and its submodules recursively.
+All the artifact files installed in the Docker image will be downloaded in `exp_clloective_farmalloc` directory.
 recursive cloneをする。
 
 ```bash
 $ git clone --recurse-submodules git@github.com:farmalloc/exp_collective_farmalloc.git workdir
 ```
+
 
 また、ビルドに向けて次の表にあるdependenciesを用意する。ubuntu 22.04では全てaptで入ることを確認済みである。
 
@@ -60,8 +100,9 @@ $ git clone --recurse-submodules git@github.com:farmalloc/exp_collective_farmall
 </details>
 
 
-### ビルド
+#### Build
 
+Build the artifact and benchmarking programs with the following commands.
 下のコマンドを実行する。
 
 ```bash
@@ -72,12 +113,20 @@ $ git clone --recurse-submodules git@github.com:farmalloc/exp_collective_farmall
 
 ### Testing the Artifact
 
+Let's execute a benchmark program of a B-tree using our collective allocator library.
+Here, we use the `local+dfs` variant of the B-tree (see Section 5.2) and
+the "key-value store benchmark" in Section 5.1.1 with parameterers $L=200$, $\alpha=1.3$ and $U=0.05$.
+(TODO: Lを確認) This reproduces the result corresponding to the right most dark gray (purely-local & page-aware (dfs))
+plot in Figure 10c in the paper.
+
 テストとして下のコマンドを実行し、論文の図10に示されるプロットの1点を再現する実験を実行する。
 
 ```bash
 /workdir$ ./scripts/kvs_benchmark.sh btree local+dfs 200 1.3 0.05
 ```
 
+The output will look like the follwings. If everything went well, the sum of the last two
+numbers is around 5000 (4953 + 0 in this example). 
 これは `local+dfs B-tree` (5.2章) についてkey-value store benchmark (5.1.1章)を、$\alpha=1.3, U=0.05$というベンチマーク・パラメータで実行する。
 出力例は下に示すとおりである。
 
@@ -91,6 +140,7 @@ $ git clone --recurse-submodules git@github.com:farmalloc/exp_collective_farmall
 
 > この合計値は、当該ベンチマークにおいてスワップされたデータの量(単位はページ)であり、図10cの最も右下のプロットに対応する。
 
+This is the end of the getting started guide.
 
 ## Overview of Claims
 
