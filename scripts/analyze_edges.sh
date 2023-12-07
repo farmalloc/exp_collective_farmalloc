@@ -82,6 +82,7 @@ fi
 ##########
 log_name="logs/analyze_edges_of_$2_$1.log"
 mkdir -p logs
+echo "log file: ${log_name}"
 
 echo "###analyze_edges_of_$2_$1###" | tee -a ${log_name}
 ./build/analyze_edges_of_${obj_plmt}_${structure} $exec_args | tee -a ${log_name}
