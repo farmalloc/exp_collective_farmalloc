@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 \
   && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12 \
   && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12 \
-  && useradd worker \
+  && useradd worker -d /workdir \
   && usermod -aG sudo worker \
   && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
