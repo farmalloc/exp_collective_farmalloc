@@ -275,6 +275,7 @@ This is the end of the getting started guide.
 ```
 
 出力中の右から1, 2, 3番目の値が、それぞれ *cross-page link*, *in-page link*, *purely-local link* の個数を示している。図9aに書かれた数字はこれらの比率である。
+TODO: 他の実行で出るべき値のあるファイルを用意し、説明。
 
 他の結果は `scripts/analyze_edges.sh` に与えるパラメータを変えることで再現される。当該スクリプトのパラメータの意味は下記の通りである。コマンド例の `btree` を `skiplist` に変えると図9bの結果が得られるようになり、 `hint` を `local` など他のcontainer variantの名前に変えると対応する結果が得られる。
 
@@ -291,18 +292,21 @@ Parameters
 
 このスクリプトは、 `src` ディレクトリの下のソースファイルをコンパイルしたものを実行している。
 
+TODO: 実行時間の長さを書く。短くするなら `include/setting_basis.hpp` の19行目にある `NumElements` を小さくするのがいいと書く。
+
 
 ### Reduction of Remote Swapping
 
+> Using the collective allocator appropriately for object placement aware of the far-memory model actually benefits to reducing remote swapping.
+
+このclaimをサポートするのは、[B木・スキップリストの各実装](#container-implementations)を用いて5.1.1章の"key-value store benchmark"を走らせた際の、データのスワップ量(図10, 11, 12)である。これは `scripts/kvs_benchmark.sh` を用いて再現できる。[Getting Started Guideの中でのベンチマーク実行](#testing-the-artifact)がその例である。
+
 ```bash
+# reprint
 /workdir$ ./scripts/kvs_benchmark.sh btree local+dfs 200 1.3 0.05
 ```
 
-```
-###analyze_edges_of_local+dfs_btree###
-#NumElements    PurelyLocalCapacity[B]  batch_blocking  construction_duration[ns]       purely_local_edges      same_page_edges diff_pages_edges
-13421773        2147483712      1       85143447311     5592382 0       4473384
-```
+他の結果は `scripts/kvs_benchmark.sh` に与えるパラメータを変えることで再現される。当該スクリプトのパラメータの意味は下記の通りである。コマンド例の `btree` を `skiplist` に変えると図12の結果が得られるようになり、 `hint` を `local` など他のcontainer variantの名前に変えると対応する結果が得られる。 `200`, `1.3`, `0.05` はそれぞれベンチマーク・パラメータ $L$, $\alpha$, $U$ に対応している。
 
 ```
 Usage: kvs_benchmark.sh STRUCTURE OBJ_PLMT LOCAL_MEM_CAP ZIPF_SKEWNESS UPDATE_RATIO
@@ -318,3 +322,7 @@ Parameters
     ZIPF_SKEWNESS:  one of {0.8, 1.3}
     UPDATE_RATIO:   one of {0.05, 0.5}
 ```
+
+TODO: 各実行で出るべき値のあるファイルを用意し、説明。
+
+TODO: 実行時間の長さを書く。短くするなら `include/setting_basis.hpp` の19行目にある `NumElements` を小さくするのがいいと書く。
