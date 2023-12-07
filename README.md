@@ -32,7 +32,7 @@ The image contains three main components:
   * Variety of B-tree and skip list implementations using the collective allocator library. They are listed in Section 5.2 in the paper.
   * Benchmarking related programs and scripts, including benchmark drivers (programs that uses the B-trees and the skip lists).
  
-In addition, a git repository of [UMap](git@github.com:farmalloc/umap.git), a user-level page cache library, with our bug fix (commit cb294ef) is included.
+In addition, a git repository of [UMap](https://github.com:farmalloc/umap.git), a user-level page cache library, with our bug fix (commit cb294ef) is included.
 These components are placed in the following directories in the default user's home directory:
 
   * `library`: the collective allocator library
