@@ -91,7 +91,17 @@ Build the artifact and benchmarking programs with the following commands.
 /workdir$ cmake --build build/
 ```
 
-TODO: 無視してよいwarningを列挙する。
+<details>
+<summary>Warnings that are safe to be ignored</summary>
+
+* ```
+  /workdir/library/farmalloc_impl/umap/src/umap/Uffd.cpp:167:8: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+  ```
+* ```
+  /workdir/library/farmalloc_impl/include/public/farmalloc/hint_allocator.ipp:270:10: warning: pointer used after 'void operator delete(void*, std::size_t)' [-Wuse-after-free]
+  ```
+  * It seems to be an incorrect check of g++.
+</details>
 
 ### Testing the Artifact
 
