@@ -23,18 +23,9 @@ These components are placed in the following directories in the default user's h
   * `library`: the collective allocator library
   * `library/farmalloc_impl/umap`: UMap library
   * `include/far_memory_container`: B-tree and skip list implementations
-    |container variant|implementation|
-    |:-|:-|
-    |`hint` B-tree|`include/far_memory_container/baseline/b_tree.hpp` <br> `include/far_memory_container/baseline/b_tree.ipp` <br> `include/far_memory_container/baseline/b_tree_node.ipp` <br> `include/far_memory_container/baseline/b_tree_iterator.ipp`|
-    |`local` B-tree <br> `local+dfs` B-tree <br> `local+vEB` B-tree|`include/far_memory_container/blocked/b_tree.hpp` <br> `include/far_memory_container/blocked/b_tree.ipp` <br> `include/far_memory_container/blocked/b_tree_node.ipp` <br> `include/far_memory_container/blocked/b_tree_iterator.ipp`|
-    |`dfs` B-tree <br> `vEB` B-tree|`include/far_memory_container/page_aware/b_tree.hpp` <br> `include/far_memory_container/page_aware/b_tree.ipp` <br> `include/far_memory_container/page_aware/b_tree_node.ipp` <br> `include/far_memory_container/page_aware/b_tree_iterator.ipp`|
-    |`hint` skip list|`include/far_memory_container/baseline/skiplist.hpp`|
-    |`local` skip list <br> `local+page` skip list|`include/far_memory_container/blocked/skiplist.hpp`|
-    |`page` skip list|`include/far_memory_container/page_aware/skiplist.hpp`|
   * `include`: benchmarking related programs (data generator)
   * `src`: benchmarking related programs (benchmark drivers)
   * `scripts`: benchmarking related programs (scripts)
-  * `for_code_diff`: コンテナ実装を、それらの間のdiff行数をカウントするために処理したもの
 
 ### Play around
 
@@ -60,7 +51,7 @@ option in `docker_seccomp.json` by comparing it with the [default setting](https
 
 <!-- リポジトリのREADMEを兼ねたいので、邪魔にならないようにこちらも書く -->
 <details>
-<summary>Try without Docker</summary>
+<summary>How to try without Docker</summary>
 
 #### Prerequisites
 
@@ -86,9 +77,10 @@ $ git clone --recurse-submodules git@github.com:farmalloc/exp_collective_farmall
 Build the artifact and benchmarking programs with the following commands.
 
 ```bash
-/workdir$ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+cd /workdir
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
 # to use Makefile: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-/workdir$ cmake --build build/
+cmake --build build/
 ```
 
 TODO: 無視してよいwarningを列挙する。
@@ -102,7 +94,8 @@ This reproduces the result corresponding to the right most dark gray (purely-loc
 plot in Figure 10c in the paper.
 
 ```bash
-/workdir$ ./scripts/kvs_benchmark.sh btree local+dfs 200 1.3 0.05
+cd /workdir
+scripts/kvs_benchmark.sh btree local+dfs 200 1.3 0.05
 ```
 
 The output will look like the follwings. If everything went well, the sum of the last two
@@ -118,7 +111,7 @@ This is the end of the getting started guide.
 
 ## Overview of Claims
 
-論文のEvaluation (5章) 冒頭に書いた通り、claimは次の2つである。
+Our main claims are the followings, as described at the beginning of Section 5 in the paper.
 
 1.  Our collective allocator abstraction is sufficiently expressive to implement various object placement strategies in a modular manner.
     * step-by-step instructions -> [Expressiveness](#expressiveness)
@@ -129,146 +122,170 @@ This is the end of the getting started guide.
 ## Step-by-Step Instructions
 ### Expressiveness
 
+Our claim regarding expressiveness is:
 > Our collective allocator abstraction is sufficiently expressive to implement various object placement strategies in a modular manner.
 
-このclaimをサポートする要素は次の3つである。
+This is supported by the following facts:
 
-* collective allocatorの上の様々なB木・スキップリスト実装 (5.2章)
-* その実装にかかるコード差分が小さかったこと (図7, 8, 13, 15)
-  * 行数での比較 (表3)
-* その実装がオブジェクト間リンクの分析 (5.1.2章) において望ましい変化を見せたこと (図9)
+  * **Container implementations**: we successfully implemented B-trees and skip lists with various object placement strategies using the collective allocator with small modifications on ordinary implementatinos of them. (examples in Section 4 and evaluation in Section 5.2)
+  * **Cross-page link analysis**: these implementations exhibited expected behaviours in the cross-page link analysis (Section 5.1.2) with respect to object placement strategies. (Section 5.3)
 
-以下、この順に、再現・確認の方法を述べる。
+Following subsections describes how to confirm these facts.
 
 #### Container Implementations
 
-コンテナ実装の各variantがどこで実装されているかは[Components](#components)の表の通りである。
-
-#### Figure 7, 8
-
-論文の図7の疑似コードは、B木実装においてcollective allocatorを使ってpurely-local aware placementを実装するための差分を示している。また図8の疑似コードは、図7をベースとして、page-aware placementを保存するための差分を示している。結果としてできあがる図8中の関数 `ins_rec` は、 `include/far_memory_container/blocked/b_tree.ipp` の190行目にある `BTreeMap::insert_step` に対応している。
-
-また図7, 8中の主な追加行は、実際の実装と下のように対応している。
-
-|図7中の行番号|`b_tree.ipp` 内の行番号|
-|-:|-:|
-|18|232|
-|20, 21|254, 255|
-|22|233|
-|27|237, 326, 328|
-|29|247|
-|31, 32|254, 255, 327|
-|34|245|
-|35|247|
-|40|258|
-|41|259|
-
-|図8中の行番号|`b_tree.ipp` 内の行番号|
-|-:|-:|
-|8|197, 206|
-|15, 16, 17|198, 234|
-
-#### Figure 13
-
-論文の図13は、B木実装においてcollective allocatorを使ってノードを再配置しpage-aware placementを実現する処理を示している。定義されている関数 `make_page_aware` は `include/far_memory_container/blocked/b_tree.ipp` の522行目にある `BTreeMap::batch_block` に、 `traverse` は531行目にある `BTreeMap::batch_block_step` に対応している。
-
-図13中の主要な行は、実際の実装と下のように対応している。
-
-|図13中の行番号|`b_tree.ipp` 内の行番号|
-|-:|-:|
-|2|527|
-|3|528|
-|6|533, 534, 535|
-|7|539|
-|8|540|
-|10|541|
-|12|542|
-|13|544|
-
-#### Figure 15
-
-論文の図15は、B木実装においてcollective allocatorを使ってノードを再配置し、van Emde Boasレイアウトのpage-aware placementを実現する処理を示している。定義されている関数 `make_page_aware` は `include/far_memory_container/blocked/b_tree.ipp` の549行目にある `BTreeMap::batch_vEB` に、 `traverse` は564行目にある `BTreeMap::batch_vEB_step` に対応している。
-
-図15中の主要な行は、実際の実装と下のように対応している。
-
-|図15中の行番号|`b_tree.ipp` 内の行番号|
-|-:|-:|
-|2|560|
-|3|561|
-|6|566|
-|8|570|
-|9|571|
-|11|572|
-|13|573|
-|14|575|
-|17|580|
-|19|581|
-|21|589|
-|22|590, 592|
-
-#### Table 3
-
-表3は `for_code_diff` ディレクトリ内にあるコンテナ実装間でdiffを取ることで再現できる。
-このディレクトリにある実装は、 `include/far_memory_container` 内の実装に次の処理を加えたものである。
-
-* `local` B-treeと `local+dfs` B-treeなど、実装を共有していたものを分離する
-* `local` B-tree内のpage-aware placement用の処理など、分離の結果不要になった記述を削除する
-* オブジェクト配置を一切コントロールしない、plain baseline variantを用意する
-* 本質的なコード差分にあたらないものがdiffに表れないように削除・共通化する
-  * オブジェクト間リンクの分析のための記述を削除
-  * 空行を削除
-  * インクルードパス、名前空間名を共通化
-
-この処理を施した結果、 `for_code_diff` 内の構成は下の表のようになった。
+The implementations of the B-tree and the skip list are placed in
+the `include/far_memory_container` directory. Correspondence between
+the container variant names in the paper (listed in Section 5.2) and 
+source files are summarised in the following table.
 
 |container variant|implementation|
 |:-|:-|
-|plain baseline B-tree|`for_code_diff/b_tree/baseline/b_tree.hpp` <br> `for_code_diff/b_tree/baseline/b_tree.ipp` <br> `for_code_diff/b_tree/baseline/b_tree_node.ipp` <br> `for_code_diff/b_tree/baseline/b_tree_iterator.ipp`|
-|`hint` B-tree|`for_code_diff/b_tree/hint/b_tree.hpp` <br> `for_code_diff/b_tree/hint/b_tree.ipp` <br> `for_code_diff/b_tree/hint/b_tree_node.ipp` <br> `for_code_diff/b_tree/hint/b_tree_iterator.ipp`|
-|`local` B-tree|`for_code_diff/b_tree/local/b_tree.hpp` <br> `for_code_diff/b_tree/local/b_tree.ipp` <br> `for_code_diff/b_tree/local/b_tree_node.ipp` <br> `for_code_diff/b_tree/local/b_tree_iterator.ipp`|
-|`local+dfs` B-tree|`for_code_diff/b_tree/local_dfs/b_tree.hpp` <br> `for_code_diff/b_tree/local_dfs/b_tree.ipp` <br> `for_code_diff/b_tree/local_dfs/b_tree_node.ipp` <br> `for_code_diff/b_tree/local_dfs/b_tree_iterator.ipp`|
-|`dfs` B-tree|`for_code_diff/b_tree/dfs/b_tree.hpp` <br> `for_code_diff/b_tree/dfs/b_tree.ipp` <br> `for_code_diff/b_tree/dfs/b_tree_node.ipp` <br> `for_code_diff/b_tree/dfs/b_tree_iterator.ipp`|
-|`local+vEB` B-tree|`for_code_diff/b_tree/local_vEB/b_tree.hpp` <br> `for_code_diff/b_tree/local_vEB/b_tree.ipp` <br> `for_code_diff/b_tree/local_vEB/b_tree_node.ipp` <br> `for_code_diff/b_tree/local_vEB/b_tree_iterator.ipp`|
-|`vEB` B-tree|`for_code_diff/b_tree/vEB/b_tree.hpp` <br> `for_code_diff/b_tree/vEB/b_tree.ipp` <br> `for_code_diff/b_tree/vEB/b_tree_node.ipp` <br> `for_code_diff/b_tree/vEB/b_tree_iterator.ipp`|
-|plain baseline skip list|`for_code_diff/skip_list/baseline/skiplist.hpp`|
-|`hint` skip list|`for_code_diff/skip_list/hint/skiplist.hpp`|
-|`local` skip list|`for_code_diff/skip_list/local/skiplist.hpp`|
-|`local+page` skip list|`for_code_diff/skip_list/local_page/skiplist.hpp`|
-|`page` skip list|`for_code_diff/skip_list/page/skiplist.hpp`|
+|`hint` B-tree|`include/far_memory_container/baseline/b_tree.hpp` <br> `include/far_memory_container/baseline/b_tree.ipp` <br> `include/far_memory_container/baseline/b_tree_node.ipp` <br> `include/far_memory_container/baseline/b_tree_iterator.ipp`|
+|`local` B-tree <br> `local+dfs` B-tree <br> `local+vEB` B-tree|`include/far_memory_container/blocked/b_tree.hpp` <br> `include/far_memory_container/blocked/b_tree.ipp` <br> `include/far_memory_container/blocked/b_tree_node.ipp` <br> `include/far_memory_container/blocked/b_tree_iterator.ipp`|
+|`dfs` B-tree <br> `vEB` B-tree|`include/far_memory_container/page_aware/b_tree.hpp` <br> `include/far_memory_container/page_aware/b_tree.ipp` <br> `include/far_memory_container/page_aware/b_tree_node.ipp` <br> `include/far_memory_container/page_aware/b_tree_iterator.ipp`|
+|`hint` skip list|`include/far_memory_container/baseline/skiplist.hpp`|
+|`local` skip list <br> `local+page` skip list|`include/far_memory_container/blocked/skiplist.hpp`|
+|`page` skip list|`include/far_memory_container/page_aware/skiplist.hpp`|
 
-これを用いて、例えばplain baseline B-treeと `local+dfs` B-treeの差分は、下のコマンドを実行して得られる。
+Note that `hint` B-tree and `hint` skip list do not use collective allocator. They used the standard C++ allocator.
+
+##### Correspondence between examples in Section 4 and source code of implementations
+
+In Section 4 in the paper, we picked `local+dfs` B-tree as an example to
+demonstrate how to use our collective allocator using Figure 7, 8, and 13.
+Figure 15 also demonstrates it using `local+vEB` B-tree as an example.
+The functions in the figures correspond to the functions in `include/far_memory_container/blocked/b_tree.ipp`.
+
+|figure|function in figure|function in `b_tree.ipp`|
+|:-|:-|:-|
+|7 & 8 | `BTree::ins_rec` | `BTreeMap::insert_step` |
+|13    | `BTree::make_page_aware` | `BTreeMap::batch_block` |
+|13    | `BTree::traverse` | `BTreeMap::batch_block_step` |
+|15    | `BTree::make_page_aware` | `BTreeMap::batch_vEB` |
+|15    | `BTree::traverse` | `BTreeMap::batch_vEB_step` |
+
+<details>
+<summary>Line-by-line correspondence</summary>
+
+Line-by-line correspondence for the significant lines are listed in the following table.
+
+|Figure #|line in figure|line in `b_tree.ipp`|
+|-:|-:|-:|
+|7|18|232|
+|7|20, 21|254, 255|
+|7|22|233|
+|7|27|237, 326, 328|
+|7|29|247|
+|7|31, 32|254, 255, 327|
+|7|34|245|
+|7|35|247|
+|7|40|258|
+|7|41|259|
+|8|8|197, 206|
+|8|15, 16, 17|198, 234|
+|13|2|527|
+|13|3|528|
+|13|6|533, 534, 535|
+|13|7|539|
+|13|8|540|
+|13|10|541|
+|13|12|542|
+|13|13|544|
+|15|2|560|
+|15|3|561|
+|15|6|566|
+|15|8|570|
+|15|9|571|
+|15|11|572|
+|15|13|573|
+|15|14|575|
+|15|17|580|
+|15|19|581|
+|15|21|589|
+|15|22|590, 592|
+
+</details>
+
+##### Amount of code differences between baseline and containers using the collective allocator (Table 3 in the paper)
+
+In Table 3 in the paper, we counted the number of different lines between the baselines
+and the containers using the collective allocator using the `diff` command. Here the 
+baselines are the containers that are similar to `hint` B-tree and `hint` skip list,
+but allocation hint parameters are not given to the allocator.
+
+As we showed in the previous table, a single set of source files implements multiple
+variants of containers.  For example, `local` B-tree, `local+dfs` B-tree, and `local-vEB`
+B-tree are implemented in the same source file. Thus, we separated implementations so
+that each separated implementation contains
+only the variant specific code and common code used by the variant.
+Separate implementations are stored in the `for_code_diff` directory.
+
+Amount of different lines (Table 3 in the paper) are counted by compareing with
+the files for the baseline and those for the separated implementation.
+For `local+dfs` B-tree, for example, the following command gives the amount of
+differences.
 
 ```bash
-/workdir$ diff -rywW1 for_code_diff/b_tree/baseline/ for_code_diff/b_tree/local_dfs/ | sort | uniq -c
+cd /workdir/for_code_diff
+diff -rywW1 b_tree/baseline b_tree/local_dfs | sort | uniq -c
 ```
 
-このコマンドは下の出力をする。
+Following expected output shows there are 7 dels (`<`), 160 adds (`>`), and 19 modifies (`|`).
+These numbers match those of `local+dfs` in Table 3a.
 
 ```
     571  
       7 <
     160 >
-      1 diff -rywW1 for_code_diff/b_tree/baseline/b_tree.hpp for_code_diff/b_tree/local_dfs/b_tree.hpp
-      1 diff -rywW1 for_code_diff/b_tree/baseline/b_tree.ipp for_code_diff/b_tree/local_dfs/b_tree.ipp
-      1 diff -rywW1 for_code_diff/b_tree/baseline/b_tree_iterator.ipp for_code_diff/b_tree/local_dfs/b_tree_iterator.ipp
-      1 diff -rywW1 for_code_diff/b_tree/baseline/b_tree_node.ipp for_code_diff/b_tree/local_dfs/b_tree_node.ipp
+      1 diff -rywW1 b_tree/baseline/b_tree.hpp b_tree/local_dfs/b_tree.hpp
+      1 diff -rywW1 b_tree/baseline/b_tree.ipp b_tree/local_dfs/b_tree.ipp
+      1 diff -rywW1 b_tree/baseline/b_tree_iterator.ipp b_tree/local_dfs/b_tree_iterator.ipp
+      1 diff -rywW1 b_tree/baseline/b_tree_node.ipp b_tree/local_dfs/b_tree_node.ipp
      19 |
 ```
 
-出力のうち、 `>` の左にある数値160が `local+dfs` B-treeの実装で追加された行数、 `<` の左にある数値7が削除された行数、 `|` の左にある数値19が変更された行数である。
-これは表3aの `local+dfs` の行に示された値と一致する。
+Directories for separate implementations are summarised
+in the following table. Note that baselines are created from `hint` containers
+by removing allocation hint parameters.  Also note that inessential diffrences
+such as those in measruement code and include paths are eliminated from
+the separate implementation.
 
-`diff` コマンドの引数に指定するディレクトリパスを、上の表に従って変えることで、他の組み合わせについてもコード差分の行数を得ることができる。
+|container variant|directory|
+|:-|:-|
+|baseline B-tree|`for_code_diff/b_tree/baseline`|
+|`hint` B-tree|`for_code_diff/b_tree/hint`|
+|`local` B-tree|`for_code_diff/b_tree/local`|
+|`local+dfs` B-tree|`for_code_diff/b_tree/local_dfs`|
+|`dfs` B-tree|`for_code_diff/b_tree/dfs`|
+|`local+vEB` B-tree|`for_code_diff/b_tree/local_vEB`|
+|`vEB` B-tree|`for_code_diff/b_tree/vEB`|
+|baseline skip list|`for_code_diff/skip_list/baseline`|
+|`hint` skip list|`for_code_diff/skip_list/hint`|
+|`local` skip list|`for_code_diff/skip_list/local`|
+|`local+page` skip list|`for_code_diff/skip_list/local_page`|
+|`page` skip list|`for_code_diff/skip_list/page`|
 
-#### Figure 9
+#### Cross-page link analysis (Figure 9 in Section 5.2)
 
-図9は `scripts/analyze_edges.sh` を用いて再現できる。例えば図9aの `hint` の結果は次のコマンドで再現できる。
+The files `src/analyze_edges_*.cpp` are benchmark drivers for the corss-page link analysis.
+Though the [build](#build) section in the Getting Started Guild, they have already compiled
+into the `build` directory.
+
+They can be executed using the `scripts/analyze_edges.sh` script. The following
+command counts the number of edges for each edge type for the `hint` B-tree,
+which corresponds to `hint` in Figure 9a.
 
 ```bash
-/workdir$ ./scripts/analyze_edges.sh btree hint
+cd /workdir
+scripts/analyze_edges.sh btree hint
 ```
-
-上記のコマンドは下のような出力をする。
+The expected output looks like the following. The last thee numbers
+are the numbers of purely-local  in-page, and cross-page links,
+from left to right, respectively.
+(TODO: 数字がおかしい?)
+They are 5592382, 0, and 4473384 in this example. Figure 9 in the paper plots
+the ratios of these numbers.
 
 ```
 ###analyze_edges_of_local+dfs_btree###
@@ -276,26 +293,25 @@ This is the end of the getting started guide.
 13421773        2147483712      1       85143447311     5592382 0       4473384
 ```
 
-出力中の右から1, 2, 3番目の値が、それぞれ *cross-page link*, *in-page link*, *purely-local link* の個数を示している。図9aに書かれた数字はこれらの比率である。
-TODO: 他の実行で出るべき値のあるファイルを用意し、説明。("Where appropriate, include descriptions of and links to files (included in the archive) that represent expected outputs (e.g., the log files expected to be generated by your tool on the given inputs)")
-
-他の結果は `scripts/analyze_edges.sh` に与えるパラメータを変えることで再現される。当該スクリプトのパラメータの意味は下記の通りである。コマンド例の `btree` を `skiplist` に変えると図9bの結果が得られるようになり、 `hint` を `local` など他のcontainer variantの名前に変えると対応する結果が得られる。
+Numbers for other variants can be obtained by giving appropriate parameters to the script.
+The usage of the script is:
 
 ```
-Usage: analyze_edges.sh STRUCTURE OBJ_PLMT
-
-Parameters
-    STRUCTURE:  one of {btree, skiplist}
-    OBJ_PLMT:   when STRUCTURE is btree, one of {hint, local, local+dfs, dfs,
-                                                 local+veb, veb}
-                when STRUCTURE is skiplist, one of {hint, local, local+page,
-                                                    page}
+analyze_edges.sh <structure> <placement>
 ```
 
-このスクリプトは、 `src` ディレクトリの下のソースファイルをコンパイルしたものを実行している。実行される処理の内訳については、[その1つ](TODO: link)に付されたコメントを参照されたい。
+where
+  * `<structure>` is either `btree` or `skiplist` and
+  * `<placement>` is one of the lowercase labels bars in Figure 9, such as `dfs`, `veb`, or `local+dfs`.
 
-1回の実行時間の目安は1～2分である。これを短くしたい場合は、 `include/setting_basis.hpp` の19行目にある `NumElements` (コンテナに挿入する要素数)を小さくするのがいい。
+The expected output for each variant is stored in the `TODO` directory. **TODO**
 
+If you want to execute the benchmark programs directly, please read this script for
+their usage.
+
+Note that a single execution of this script will complete in a few minutes.
+Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19` will
+reduce the execution time.
 
 ### Reduction of Remote Swapping
 
