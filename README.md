@@ -6,6 +6,12 @@ Artifact for "Collective Allocator Abstraction to Control Object Spatial Localit
 * URL to artifact: TODO
   * sha256 hash: `TODO`
 
+This document contains
+  * [Getting started guide](#getting-started-guide)
+  * [List of claims](#overview-of-claims)
+  * [Step-by-step instructions to reproduce the results in the paper](#step-by-step-instructions)
+  * [Short tutorial to use the artifact](#when-you-create-your-own-container)
+
 
 ## Getting Started Guide
 ### Components
@@ -397,13 +403,29 @@ reduce the execution time.
 **TODO** For example, execution will complate in XX minutes if we give XX to
 `NumElements`.  However, the results will be totally different from Figures 10, 11, and 12.
 
+## Tutorial to Use Collective Allocator
 
-## When You Create Your Own Container
+This is the tutorial to develop a container using the collective allocator.
+As the artifact is a library, we provide a short tutorial to write a program using the library.
+You can skip this section if you just want to reproduce the results in the paper.
 
+In this tutorial, we develop a linked list, `LinkedList`, with focusing on
+memory allocation and deallocation. We create files in this artifact directory `/workdir`
+in Docker container.
+
+### Step 1. Empty Program
+
+<small>
 collective allocatorを用いてコンテナを新たに実装する方法を、シンプルな連結リストの実装を例に説明する。
 なお簡単のため、アロケータ抽象化のうちメモリ確保・解放以外のコンポーネントは無視する。
+</small>
 
+First, we make an interface of `Linkedlist` in `include/linked_list.hpp`.
+The interface is as follows.
+
+<small>
 ここでは、次のようなインターフェイスを持った連結リストコンテナ `LinkedList` を実装する。
+</small>
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
@@ -418,7 +440,11 @@ template <class T, class Alloc> struct LinkedList {
 };
 ```
 
+The `LinkedList` container is expected to be used as follows.
+
+<small>
 `LinkedList` の実装は `include/linked_list.hpp` に保存するとすると、これを利用するプログラムは次のようになる。
+</small>
 
 ```cpp
 #include "linked_list.hpp"
@@ -433,7 +459,13 @@ int main() {
 }
 ```
 
+Let's create `src/use_linked_list.hpp` **TODO: use_linked_list.cpp ?** containing
+the empty program using the `LinkedList` above. Then, add the followings to `CMakeLists.txt`
+in `/workdir` so that this file will be compiled.
+
+<small>
 このプログラムを `src/use_linked_list.hpp` に保存し、 `CMakeLists.txt` の末尾に次のように追記すれば、[ビルド](#build)時に実行可能バイナリ `/build/use_linked_list` が生成されるようになる。
+</small>
 
 ```cmake
 add_executable(use_linked_list
@@ -444,10 +476,27 @@ target_link_libraries(use_linked_list PRIVATE
 )
 ```
 
+Now, we can build `/build/use_linked_list`, which creates a `LinkedList` and does nothing.
 
-### Simply Use a Collective Allocator
+```bash
+cd /workdir
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+# to use Makefile: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build/
+```
 
+### Step 2. Allocation and Deallocation without Awareing Placement
+
+First, we add an instance of the collective allocator `node_alloc` that allocates
+for `Node` type to the `LinkedList` struct. We also define two type names, `NodeAlloc`
+and `SubAlloc`. `SubAlloc` is the type of sub-allocator, which is characteristic of
+the collective allocator.
+
+Edit `include/linked_list.hpp` as follows (add three lines).
+
+<small>
 まず、 `Node` 型を確保するcollective allocatorオブジェクトをメンバに加える。
+</small>
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
@@ -462,8 +511,22 @@ template <class T, class Alloc> struct LinkedList {
 };
 ```
 
+Next, we implement the `insert` method of the `LinkedList` struct
+as well as initialisation code for the `header` member. These implementations
+use a sub-allocator of the collective allocator `node_alloc`
+to allocate memory for `Node`.
+To allocate memory for a node, we first get a sub-allocator by using
+`get_suballocator` method. Then, allocate memory from the sub-allocator.
+In this step,
+we use the swappable plain sub-allocator, which owns unlimited capacity of
+far-memory.
+
+Add the following code to `include/linked_list.hpp`.
+
+<small>
 メモリ確保・解放に `node_alloc` を使っていく。
 メモリ確保については、とりあえずは、swappable plain sub-allocatorを使うこととする。
+</small>
 
 ```cpp
 #include <farmalloc/collective_allocator_traits.hpp>
@@ -486,17 +549,22 @@ template <class T, class Alloc> struct LinkedList {
     after_this_node->next = after_this_node->next->prev = new_n;
     return new_n;
   }
-  void erase(Node* node) {
-    node->prev->next = node->next;
-    node->next->prev = node->prev;
-    node_alloc.deallocate(node, 1);  // deallocate a 1-node region
-  }
+
+  /* ... */
 };
 ```
 
+Finally, we implement the `erase` method, which deallocate a `Node`.
+For deallocation, we can simply use the `deallocate` method of the collective allocator.
+
+<small>
 メモリ解放については `node_alloc` を直接使えばよい。sub-allocatorの選択は内部で適切に行われる。
+</small>
 
 ```cpp
+#include <farmalloc/collective_allocator_traits.hpp>
+using namespace FarMalloc;
+
 template <class T, class Alloc> struct LinkedList {
   /* ... */
 
@@ -510,8 +578,30 @@ template <class T, class Alloc> struct LinkedList {
 
 ### Purely-Local Aware Placement
 
+Now, we modify the `LinkedList` to use local memory.
+This corresponds to the purely-local ware placement (Section 2.2 and 4.3) in the paper.
+
+<small>
 前のsubsectionで作った連結リストは、オブジェクト配置のremote swapping削減のための制御を全くしていない。
 このsubsectionでは、purely-local aware placement (2.2, 4.3章) を実装する。
+</small>
+
+Our placement strategy here is to place as many nodes as possible in local memory,
+giving higher priority to the closer node to the header.
+To do so, we introduce a member `least_priority` to keep track of the least prioritized
+node among nodes in local memory.
+
+```cpp
+template <class T, class Alloc> struct LinkedList {
+  /* ... */
+
+  Node* least_priority = nullptr;
+
+  /* ... */
+};
+```
+
+<small>
 具体的には、次の優先度でpurely-local領域を使うようにする。
 
 * `header` を最優先
@@ -519,6 +609,18 @@ template <class T, class Alloc> struct LinkedList {
 
 そのためにまず、purely-local領域にあるノードのうち最も優先度の低いものを `least_priority` というメンバ変数で追跡するようにする。
 また、 `header` の定義でpurely-local領域の確保を試すように変更する。
+</small>
+
+In the initialisation code for `header`, we try to allocate from
+the `purely_local` sub-allocator instead of the `swappable_plain` one.
+The `allocate` method of the `purely_local` sub-allocator throws an
+exception when local memory is full. In such a case, we allocate
+memory from the `sappable_plain` sub-allocator.
+
+When we successfully allocate memory from the `purely_local` sub-allocator,
+we track it with `least_priority` as it is the only `Node` in local memory.
+
+The header initialisation code is as follows.
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
@@ -541,7 +643,19 @@ template <class T, class Alloc> struct LinkedList {
 };
 ```
 
+In the implementation of the `insert` method, we first try to allocate
+memory for a new `Node` from the same sub-allocator as the `Node`
+immediately after which the new `Node` will be inserted.
+The `after_this_node` parameter of `insert` is such a `Node`.
+
+First, we take a sub-allocator allocated memory for `after_this_node`.
+Then, we try to allocate from the sub-allocator. If it fails,
+`after_this_node` is in local memory and local memory is full.
+
+
+<small>
 `insert` の記述は論文の図7に近い。新たに挿入されるノードのメモリ確保を、1つ前のノードと同じsub-allocatorを用いて試行するようにする。失敗した場合、purely-local領域がフルになっているから、優先度に基づいて、ノードを1つswappable領域に再配置したり、メモリをswappable領域から確保しなおしたりする。
+</small>
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
