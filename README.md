@@ -105,7 +105,7 @@ cmake --build build/
 
 Let's execute a benchmark program of a B-tree using our collective allocator library.
 Here, we use the `local+dfs` variant of the B-tree (see Section 5.2) and
-the "key-value store benchmark" in Section 5.1.1 with parameterers $L=200$, $\alpha=1.3$ and $U=0.05$.
+the "key-value store benchmark" in Section 5.1.1 with parameters $L=200$, $\alpha=1.3$ and $U=0.05$.
 This reproduces the result corresponding to the right most dark gray (purely-local & page-aware (dfs))<!-- TODO: errataに応じてlocal+dfsにする？ -->
 plot in Figure 10c in the paper.
 
@@ -114,7 +114,7 @@ cd /workdir
 scripts/kvs_benchmark.sh btree local+dfs 200 1.3 0.05
 ```
 
-The output will look like the follwings. If everything went well, the sum of the last two
+The output will look like the followings. If everything went well, the sum of the last two
 numbers is around 5000 (4953 + 0 in this example).
 
 ```
@@ -143,8 +143,8 @@ Our claim regarding expressiveness is:
 
 This is supported by the following facts:
 
-  * **Container implementations**: we successfully implemented B-trees and skip lists with various object placement strategies using the collective allocator with small modifications on ordinary implementatinos of them. (examples in Section 4 and evaluation in Section 5.2)
-  * **Cross-page link analysis**: these implementations exhibited expected behaviours in the cross-page link analysis (Section 5.1.2) with respect to object placement strategies. (Section 5.3)
+  * **Container implementations**: we successfully implemented B-trees and skip lists with various object placement strategies using the collective allocator with small modifications on ordinary implementations of them. (examples in Section 4 and evaluation in Section 5.2)
+  * **Cross-page link analysis**: these implementations exhibited expected behaviors in the cross-page link analysis (Section 5.1.2) with respect to object placement strategies. (Section 5.3)
 
 Following subsections describes how to confirm these facts.
 
@@ -153,7 +153,7 @@ Following subsections describes how to confirm these facts.
 The implementations of the B-tree and the skip list are placed in
 the `include/far_memory_container` directory. Correspondence between
 the container variant names in the paper (listed in Section 5.2) and 
-source files are summarised in the following table.
+source files are summarized in the following table.
 
 |container variant|implementation|
 |:-|:-|
@@ -237,7 +237,7 @@ that each separated implementation contains
 only the variant specific code and common code used by the variant.
 Separate implementations are stored in the `for_code_diff` directory.
 
-Amount of different lines (Table 3 in the paper) are counted by compareing with
+Amount of different lines (Table 3 in the paper) are counted by comparing with
 the files for the baseline and those for the separated implementation.
 For `local+dfs` B-tree, for example, the following command gives the amount of
 differences.
@@ -261,10 +261,10 @@ These numbers match those of `local+dfs` in Table 3a.
      19 |
 ```
 
-Directories for separate implementations are summarised
+Directories for separate implementations are summarized
 in the following table. Note that baselines are created from `hint` containers
-by removing allocation hint parameters.  Also note that inessential diffrences
-such as those in measruement code and include paths are eliminated from
+by removing allocation hint parameters.  Also note that inessential differences
+such as those in measurement code and include paths are eliminated from
 the separate implementation.
 
 |container variant|directory|
@@ -284,7 +284,7 @@ the separate implementation.
 
 #### Cross-page link analysis (Figure 9 in Section 5.2)
 
-The files `src/analyze_edges_*.cpp` are benchmark drivers for the corss-page link analysis.
+The files `src/analyze_edges_*.cpp` are benchmark drivers for the cross-page link analysis.
 Though the [build](#build) section in the Getting Started Guide, they have already compiled
 into the `build` directory.
 
@@ -296,7 +296,7 @@ which corresponds to `hint` in Figure 9a.
 cd /workdir
 scripts/analyze_edges.sh btree hint
 ```
-The expected output looks like the following. The last thee numbers
+The expected output looks like the following. The last three numbers
 are the numbers of purely-local  in-page, and cross-page links,
 from left to right, respectively.
 (TODO: 数字がおかしい?)
@@ -400,7 +400,7 @@ scripts/generate figure 10, 11, 12 TODO TODO
 Note that a single execution of `TODO` will complete in **TODO HOW LONG TIME?**.  
 Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19` will
 reduce the execution time.
-**TODO** For example, execution will complate in XX minutes if we give XX to
+**TODO** For example, execution will complete in XX minutes if we give XX to
 `NumElements`.  However, the results will be totally different from Figures 10, 11, and 12.
 
 ## Tutorial to Use Collective Allocator
@@ -415,7 +415,7 @@ in Docker container.
 
 ### Step 1. Empty Program
 
-First, we make an interface of `Linkedlist` in `include/linked_list.hpp`.
+First, we make an interface of `LinkedList` in `include/linked_list.hpp`.
 The interface is as follows.
 
 ```cpp
@@ -468,7 +468,7 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
 cmake --build build/
 ```
 
-### Step 2. Allocation and Deallocation without Awareing Placement
+### Step 2. Allocation and Deallocation without Awarding Placement
 
 First, we add an instance of the collective allocator `node_alloc` that allocates
 for `Node` type to the `LinkedList` struct. We also define two type names, `NodeAlloc`
@@ -610,7 +610,7 @@ If `after_this_node` is the last node in local memory,
 memory for the new node should be allocated from the
 `swappable_plain` sub-allocator.
 
-But, otherwise, the new node should be crated in local memory.
+But, otherwise, the new node should be cerated in local memory.
 To do so, we *move* the last node in local memory to the area
 allocated from the `swappable_plain` sub-allocator.
 
@@ -699,7 +699,7 @@ template <class T, class Alloc> struct LinkedList {
 Finally, we take page boundaries into account.
 Our placement strategy here is that when we place a node in the swappable region
 (i.e., area governed by the far-memory system), we try to place a node in the
-same page as its neighber. If the page is full, we place the node in a fresh
+same page as its neighbor. If the page is full, we place the node in a fresh
 page.
 
 The following code is the revised `insert` method. Instead of allocating
