@@ -415,17 +415,8 @@ in Docker container.
 
 ### Step 1. Empty Program
 
-<small>
-collective allocatorを用いてコンテナを新たに実装する方法を、シンプルな連結リストの実装を例に説明する。
-なお簡単のため、アロケータ抽象化のうちメモリ確保・解放以外のコンポーネントは無視する。
-</small>
-
 First, we make an interface of `Linkedlist` in `include/linked_list.hpp`.
 The interface is as follows.
-
-<small>
-ここでは、次のようなインターフェイスを持った連結リストコンテナ `LinkedList` を実装する。
-</small>
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
@@ -441,10 +432,6 @@ template <class T, class Alloc> struct LinkedList {
 ```
 
 The `LinkedList` container is expected to be used as follows.
-
-<small>
-`LinkedList` の実装は `include/linked_list.hpp` に保存するとすると、これを利用するプログラムは次のようになる。
-</small>
 
 ```cpp
 #include "linked_list.hpp"
@@ -462,10 +449,6 @@ int main() {
 Let's create `src/use_linked_list.hpp` **TODO: use_linked_list.cpp ?** containing
 the empty program using the `LinkedList` above. Then, add the followings to `CMakeLists.txt`
 in `/workdir` so that this file will be compiled.
-
-<small>
-このプログラムを `src/use_linked_list.hpp` に保存し、 `CMakeLists.txt` の末尾に次のように追記すれば、[ビルド](#build)時に実行可能バイナリ `/build/use_linked_list` が生成されるようになる。
-</small>
 
 ```cmake
 add_executable(use_linked_list
@@ -494,10 +477,6 @@ the collective allocator.
 
 Edit `include/linked_list.hpp` as follows (add three lines).
 
-<small>
-まず、 `Node` 型を確保するcollective allocatorオブジェクトをメンバに加える。
-</small>
-
 ```cpp
 template <class T, class Alloc> struct LinkedList {
   /* struct Node { ... }; */
@@ -522,11 +501,6 @@ we use the swappable plain sub-allocator, which owns unlimited capacity of
 far-memory.
 
 Add the following code to `include/linked_list.hpp`.
-
-<small>
-メモリ確保・解放に `node_alloc` を使っていく。
-メモリ確保については、とりあえずは、swappable plain sub-allocatorを使うこととする。
-</small>
 
 ```cpp
 #include <farmalloc/collective_allocator_traits.hpp>
@@ -557,10 +531,6 @@ template <class T, class Alloc> struct LinkedList {
 Finally, we implement the `erase` method, which deallocate a `Node`.
 For deallocation, we can simply use the `deallocate` method of the collective allocator.
 
-<small>
-メモリ解放については `node_alloc` を直接使えばよい。sub-allocatorの選択は内部で適切に行われる。
-</small>
-
 ```cpp
 #include <farmalloc/collective_allocator_traits.hpp>
 using namespace FarMalloc;
@@ -576,15 +546,10 @@ template <class T, class Alloc> struct LinkedList {
 };
 ```
 
-### Purely-Local Aware Placement
+### Step 3. Purely-Local Aware Placement
 
 Now, we modify the `LinkedList` to use local memory.
 This corresponds to the purely-local ware placement (Section 2.2 and 4.3) in the paper.
-
-<small>
-前のsubsectionで作った連結リストは、オブジェクト配置のremote swapping削減のための制御を全くしていない。
-このsubsectionでは、purely-local aware placement (2.2, 4.3章) を実装する。
-</small>
 
 Our placement strategy here is to place as many nodes as possible in local memory,
 giving higher priority to the closer node to the header.
@@ -600,16 +565,6 @@ template <class T, class Alloc> struct LinkedList {
   /* ... */
 };
 ```
-
-<small>
-具体的には、次の優先度でpurely-local領域を使うようにする。
-
-* `header` を最優先
-* 他のノードは、先頭に近いほど優先
-
-そのためにまず、purely-local領域にあるノードのうち最も優先度の低いものを `least_priority` というメンバ変数で追跡するようにする。
-また、 `header` の定義でpurely-local領域の確保を試すように変更する。
-</small>
 
 In the initialisation code for `header`, we try to allocate from
 the `purely_local` sub-allocator instead of the `swappable_plain` one.
@@ -660,10 +615,6 @@ To do so, we *move* the last node in local memory to the area
 allocated from the `swappable_plain` sub-allocator.
 
 The following code is the revised `insert` method.
-
-<small>
-`insert` の記述は論文の図7に近い。新たに挿入されるノードのメモリ確保を、1つ前のノードと同じsub-allocatorを用いて試行するようにする。失敗した場合、purely-local領域がフルになっているから、優先度に基づいて、ノードを1つswappable領域に再配置したり、メモリをswappable領域から確保しなおしたりする。
-</small>
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
@@ -717,10 +668,6 @@ the swappable plain region to local memory.
 
 The following code is the revised `erase` method.
 
-<small>
-`erase` では、purely-local領域内のノードを削除したとき、swappable領域内のノードが存在していれば、そのなかで最も優先度の高いものをpurely-local領域に再配置する。
-</small>
-
 ```cpp
 template <class T, class Alloc> struct LinkedList {
   /* ... */
@@ -747,7 +694,7 @@ template <class T, class Alloc> struct LinkedList {
 ```
 
 
-### Purely-Local and Page-Aware Placement
+### Step 4. Purely-Local and Page-Aware Placement
 
 Finally, we take page boundaries into account.
 Our placement strategy here is that when we place a node in the swappable region
