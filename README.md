@@ -650,8 +650,16 @@ The `after_this_node` parameter of `insert` is such a `Node`.
 
 First, we take a sub-allocator allocated memory for `after_this_node`.
 Then, we try to allocate from the sub-allocator. If it fails,
-`after_this_node` is in local memory and local memory is full.
+`after_this_node` is in local memory, and local memory is full.
+If `after_this_node` is the last node in local memory,
+memory for the new node should be allocated from the
+`swappable_plain` sub-allocator.
 
+But, otherwise, the new node should be crated in local memory.
+To do so, we *move* the last node in local memory to the area
+allocated from the `swappable_plain` sub-allocator.
+
+The following code is the revised `insert` method.
 
 <small>
 `insert` の記述は論文の図7に近い。新たに挿入されるノードのメモリ確保を、1つ前のノードと同じsub-allocatorを用いて試行するようにする。失敗した場合、purely-local領域がフルになっているから、優先度に基づいて、ノードを1つswappable領域に再配置したり、メモリをswappable領域から確保しなおしたりする。
@@ -698,7 +706,20 @@ template <class T, class Alloc> struct LinkedList {
 };
 ```
 
+The `erase` method also need to be revised to handle the case
+where the node to be erased, the `node` parameter, is in local
+memory. Whether it is in local memory or not is tested by
+using the `contains` method of the `purely_local` sub-allocator;
+if it is contained, it is in local memory.
+In that case, room for a node is created in local memory after
+deallocation. In that case, we move the first node among nodes in
+the swappable plain region to local memory.
+
+The following code is the revised `erase` method.
+
+<small>
 `erase` では、purely-local領域内のノードを削除したとき、swappable領域内のノードが存在していれば、そのなかで最も優先度の高いものをpurely-local領域に再配置する。
+</small>
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
@@ -728,39 +749,15 @@ template <class T, class Alloc> struct LinkedList {
 
 ### Purely-Local and Page-Aware Placement
 
-最後に、このsubsectionでは、purely-local and page-aware placement (2.2, 4.4章) を実装する。
-具体的には、論文の図13のように、全ノードを走査しながらswappable領域内のノードを再配置する。
-走査順はリスト内の順序とする。
+Finally, we take page boundaries into account.
+Our placement strategy here is that when we place a node in the swappable region
+(i.e., area governed by the far-memory system), we try to place a node in the
+same page as its neighber. If the page is full, we place the node in a fresh
+page.
 
-```cpp
-template <class T, class Alloc> struct LinkedList {
-  /* ... */
-
-  void make_page_aware() {
-    SubAlloc page = node_alloc.get_suballocator(new_per_page);
-    SubAlloc purelylocal = node_alloc.get_suballocator(purely_local);
-
-    Node* node = header;
-    do {
-      if (!purelylocal.contains(node)) {
-        if (!page.is_occupancy_under(0.7)) {
-          page = node_alloc.get_suballocator(new_per_page);
-        }
-        Node* relocated_to = page.allocate(1);
-        new (relocated_to) Node{std::move(*node)};
-        relocated_to->prev->next = relocated_to->next->prev = relocated_to;
-        node->~Node();
-        node_alloc.deallocate(node, 1);
-        node = relocated_to;
-      }
-
-      node = node->next;
-    } while (node != header);
-  }
-};
-```
-
-`insert` は、論文の図8のように、一杯のページからメモリ確保をしようとして失敗するケースをケアする。
+The following code is the revised `insert` method. Instead of allocating
+memory from the `swappable_plain` allocator when we fails to allocate
+from the `purely_local` allocator, we allocate from the per_page allocator.
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
@@ -771,22 +768,58 @@ template <class T, class Alloc> struct LinkedList {
     Node* new_n;
     try {
       new_n = suballoc.allocate(1);
-      /* ... */
+      if (least_priority == after_this_node) {
+        least_priority = new_n;
+      }
     } catch (...) {
       SubAlloc purelylocal = node_alloc.get_suballocator(purely_local);
-      if (least_priority != after_this_node && purelylocal.contains(after_this_node)) {
-        // relocate a node only when an allocation within the purely-local region fails
+      if (purelylocal.contains(after_this_node)) {
+        if (least_priority != after_this_node) {
+          // relocate a node only when an allocation within the purely-local region fails
+          SubAlloc swappable = node_alloc.get_suballocator(swappable_plain);
+          Node* relocated_to = swappable.allocate(1);
+          new (relocated_to) Node{std::move(*least_priority)};
+          relocated_to->prev->next = relocated_to->next->prev = relocated_to;
+          least_priority->~Node();
 
-        /* ... */
+          // reuse a 1-node region in the purely-local region
+          new_n = least_priority;
+          // update least priority purely-local node if necessary
+          if (least_priority->prev != after_this_node) {
+            least_priority = least_priority->prev;
+          }
+        } else {
+          if (after_this_node->next != header) {
+            // allocate in the same page as the next node
+            SubAlloc suballoc = node_alloc.get_suballocator(after_this_node->next);
+            try {
+              new_n = suballoc.allocate(1);
+            } catch (...) {
+              // page of the next node is full; allocate in a new page
+              SubAlloc newpage = node_alloc.get_suballocator(new_per_page);
+              new_n = newpage.alloc(1);
+            }
+          } else {
+            // this is the first node outside local memory; allocate in a new page
+            SubAlloc newpage = node_alloc.get_suballocator(new_per_page);
+            new_n = newpage.alloc(1);
+          }
+        }
       } else {
-        suballoc = node_alloc.get_suballocator(swappable_plain);
-        new_n = suballoc.allocate(1);
+        // after_this_node is in a full page; allocate in a new page
+        SubAlloc newpage = new_alloc.get_suballocator(new_per_page);
+        new_n = newpage.alloc(1);
       }
     }
-    /* ... */
+
+    new (new_n) Node{.next = after_this_node->next, .prev = after_this_node, .value = elem};
+    after_this_node->next = after_this_node->next->prev = new_n;
+    return new_n;
   }
 };
 ```
+
+
 
 ## List of Errata of the Paper
 
