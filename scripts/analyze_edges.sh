@@ -24,7 +24,8 @@ if [[ $# -ne 2 ]]; then
     exit_with_help
 fi
 
-total_data_size=$((160 * 13421773))
+NumElements=13421773
+total_data_size=$((160 * ${NumElements}))
 local_memory_cap=$((${total_data_size} * 50 / 100))
 purely_local_cap_if_used=$((${local_memory_cap} - ${local_memory_cap} / 4096 / 2 * 4096))
 

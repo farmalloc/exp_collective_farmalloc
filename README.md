@@ -106,7 +106,7 @@ cmake --build build/
 Let's execute a benchmark program of a B-tree using our collective allocator library.
 Here, we use the `local+dfs` variant of the B-tree (see Section 5.2) and
 the "key-value store benchmark" in Section 5.1.1 with parameters $L=200$, $\alpha=1.3$ and $U=0.05$.
-This reproduces the result corresponding to the right most dark gray (purely-local & page-aware (dfs))<!-- TODO: errataに応じてlocal+dfsにする？ -->
+This reproduces the result corresponding to the right most dark gray (purely-local & page-aware (dfs))
 plot in Figure 10c in the paper.
 
 ```bash
@@ -285,7 +285,7 @@ the separate implementation.
 #### Cross-page link analysis (Figure 9 in Section 5.2)
 
 The files `src/analyze_edges_*.cpp` are benchmark drivers for the cross-page link analysis.
-Though the [build](#build) section in the Getting Started Guide, they have already compiled
+Through the [build](#build) section in the Getting Started Guide, they have already compiled
 into the `build` directory.
 
 They can be executed using the `scripts/analyze_edges.sh` script. The following
@@ -296,17 +296,18 @@ which corresponds to `hint` in Figure 9a.
 cd /workdir
 scripts/analyze_edges.sh btree hint
 ```
+
 The expected output looks like the following. The last three numbers
-are the numbers of purely-local  in-page, and cross-page links,
+are the numbers of purely-local, in-page, and cross-page links,
 from left to right, respectively.
-(TODO: 数字がおかしい?)
-They are 5592382, 0, and 4473384 in this example. Figure 9 in the paper plots
+They are 0, 573216, and 9492550 in this example. Figure 9 in the paper plots
 the ratios of these numbers.
 
 ```
-###analyze_edges_of_local+dfs_btree###
-#NumElements    PurelyLocalCapacity[B]  batch_blocking  construction_duration[ns]       purely_local_edges      same_page_edges diff_pages_edges
-13421773        2147483712      1       85143447311     5592382 0       4473384
+log file: logs/analyze_edges_of_hint_btree.log
+###analyze_edges_of_hint_btree###
+#NumElements	PurelyLocalCapacity[B]	batch_blocking	construction_duration[ns]	purely_local_edges	same_page_edges	diff_pages_edges
+13421773	0	1	48356582720	0	573216	9492550
 ```
 
 Numbers for other variants can be obtained by giving appropriate parameters to the script.
@@ -320,21 +321,21 @@ where
   * `structure` is either `btree` or `skiplist` and
   * `placement` is one of the lowercase labels bars in Figure 9, such as `dfs`, `veb`, or `local+dfs`.
 
-The expected output for each variant is placed in the `TODO` directory of this artifact. **TODO**
+The expected output for each variant is placed in the `expected_outputs/cross-page_link_analysis/` directory of this artifact.
 
 Note that a single execution of ``analyze_edges.sh`` will complete in a few minutes.
-Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19` will
+Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19` and `scripts/analyze_edges:27` will
 reduce the execution time.
 
 ##### Execute all with a single command
 
-The `TODO` script executes the benchmark program for all container variants, and
-the `TODO` script reproduce the charts in Figure 9.
+The `scripts/analyze_edges_all.sh` script executes the benchmark program for all container variants, and
+the `scripts/figure9.sh` script reproduce the charts in Figure 9.
 
-```
+```bash
 cd /workdir
-scripts/execute all TODO TODO
-scripts/generate figure 9 TODO TODO
+scripts/analyze_edges_all.sh
+scripts/figure9.sh
 ```
 
 ### Reduction of Remote Swapping
@@ -347,7 +348,7 @@ This claim is supported by the experimentation in Section 5.3, where we
 executed the benchmark programs and counted the number of swapping.
 
 The remaining files in the `src` directory (those that do not start with `analyze_edges`)
-are benchmark drivers for this experimentation.  Though the [build](#build)
+are benchmark drivers for this experimentation.  Through the [build](#build)
 section in the Getting Started Guide, they have already compiled into the `build` directory.
 
 The benchmark programs can be executed though `scripts/kvs_benchmark.sh`. A single execution
@@ -357,7 +358,7 @@ Guide.
 
 For short, the following command will give the number of swapping for the
 `local+dfs` variant of the B-tree with $L=200$, $\alpha=1.3$ and $U=0.05$,
-corresponding to the right most dark gray (purely-local & page-aware (dfs))<!-- TODO: errataに応じてlocal+dfsにする？ -->
+corresponding to the right most dark gray (purely-local & page-aware (dfs))
 plot in Figure 10c in the paper.
 
 ```bash
@@ -378,30 +379,30 @@ where
   * `skewness`, $\alpha$, is the skewness of the data (Zipfan skewness); either 0.8 or 1.3
   * `update-ratio`, $U$, is the fraction of update queries in the data; either 0.05 or 0.5.
 
-The expected output for each (variant? execution? **TODO**) is placed in the `TODO` directory of this artifact. **TODO**
+The expected output for each variant is placed in the `expected_outputs/reduction_of_remote_swapping/` directory of this artifact.
 
-Note that a single execution of ``analyze_edges.sh`` will complete in a few minutes.
-Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19` will
+Note that a single execution of ``kvs_benchmark.sh`` will complete in a few minutes.
+Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19`
+and `scripts/analyze_edges:27`, and to `NIteration` in `include/setting_basis.hpp:20` will
 reduce the execution time.
 
 ##### Execute all with a single command
 
-The `TODO` script executes the benchmark program for all container variants with
+The `scripts/kvs_benchmark_all.sh` script executes the benchmark program for all container variants with
 all combinations of parameters to reproduce Figures 10, 11, and 12.
-The `TODO` script reproduces these figures.
+The `scripts/figure_10_11_12.sh` script reproduces these figures.
 
-```
+```bash
 cd /workdir
-scripts/execute all TODO TODO
-scripts/generate figure 10, 11, 12 TODO TODO
+scripts/kvs_benchmark_all.sh
+scripts/figure_10_11_12.sh
 ```
 
-**TODO**
-Note that a single execution of `TODO` will complete in **TODO HOW LONG TIME?**.  
-Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19` will
+Note that a single execution of `scripts/kvs_benchmark_all.sh` will take about 28 hours.
+Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19`
+and `scripts/analyze_edges:27`, and to `NIteration` in `include/setting_basis.hpp:20` will
 reduce the execution time.
-**TODO** For example, execution will complete in XX minutes if we give XX to
-`NumElements`.  However, the results will be totally different from Figures 10, 11, and 12.
+For example, execution will complete in **TODO** minutes if we set `NumElements` and `NIteration` to 134217 and 100, respectively.  However, the results will be totally different from Figures 10, 11, and 12.
 
 ## Tutorial to Use Collective Allocator
 
@@ -446,7 +447,7 @@ int main() {
 }
 ```
 
-Let's create `src/use_linked_list.hpp` **TODO: use_linked_list.cpp ?** containing
+Let's create `src/use_linked_list.cpp` containing
 the empty program using the `LinkedList` above. Then, add the followings to `CMakeLists.txt`
 in `/workdir` so that this file will be compiled.
 
@@ -491,7 +492,7 @@ template <class T, class Alloc> struct LinkedList {
 ```
 
 Next, we implement the `insert` method of the `LinkedList` struct
-as well as initialisation code for the `header` member. These implementations
+as well as initialization code for the `header` member. These implementations
 use a sub-allocator of the collective allocator `node_alloc`
 to allocate memory for `Node`.
 To allocate memory for a node, we first get a sub-allocator by using
@@ -549,7 +550,7 @@ template <class T, class Alloc> struct LinkedList {
 ### Step 3. Purely-Local Aware Placement
 
 Now, we modify the `LinkedList` to use local memory.
-This corresponds to the purely-local ware placement (Section 2.2 and 4.3) in the paper.
+This corresponds to the purely-local aware placement (Section 2.2 and 4.3) in the paper.
 
 Our placement strategy here is to place as many nodes as possible in local memory,
 giving higher priority to the closer node to the header.
@@ -566,7 +567,7 @@ template <class T, class Alloc> struct LinkedList {
 };
 ```
 
-In the initialisation code for `header`, we try to allocate from
+In the initialization code for `header`, we try to allocate from
 the `purely_local` sub-allocator instead of the `swappable_plain` one.
 The `allocate` method of the `purely_local` sub-allocator throws an
 exception when local memory is full. In such a case, we allocate
@@ -575,7 +576,7 @@ memory from the `sappable_plain` sub-allocator.
 When we successfully allocate memory from the `purely_local` sub-allocator,
 we track it with `least_priority` as it is the only `Node` in local memory.
 
-The header initialisation code is as follows.
+The header initialization code is as follows.
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
@@ -610,7 +611,7 @@ If `after_this_node` is the last node in local memory,
 memory for the new node should be allocated from the
 `swappable_plain` sub-allocator.
 
-But, otherwise, the new node should be cerated in local memory.
+But, otherwise, the new node should be created in local memory.
 To do so, we *move* the last node in local memory to the area
 allocated from the `swappable_plain` sub-allocator.
 
@@ -663,7 +664,7 @@ memory. Whether it is in local memory or not is tested by
 using the `contains` method of the `purely_local` sub-allocator;
 if it is contained, it is in local memory.
 In that case, room for a node is created in local memory after
-deallocation. In that case, we move the first node among nodes in
+deallocation. Then we move the first node among nodes in
 the swappable plain region to local memory.
 
 The following code is the revised `erase` method.

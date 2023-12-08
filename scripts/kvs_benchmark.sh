@@ -36,7 +36,8 @@ __EOS__
     exit_with_help
 fi
 
-total_data_size=$((160 * 13421773))
+num_elements=13421773
+total_data_size=$((160 * ${num_elements}))
 local_memory_cap=$((${total_data_size} * $3 / 100))
 local_memory_cap_in_pages=$((${local_memory_cap} / 4096))
 purely_local_cap_if_used=$((${local_memory_cap} - ${local_memory_cap_in_pages} / 2 * 4096))
@@ -109,11 +110,11 @@ fi
 ##########
 # run the benchmark
 ##########
-log_name="logs/analyze_edges_of_$2_$1.log"
+log_name="logs/kvs_benchmark_with_$2_$1.log"
 mkdir -p logs
 echo "log file: ${log_name}"
 
-echo "###analyze_edges_of_$2_$1###" | tee -a ${log_name}
+echo "###kvs_benchmark_with_$2_$1###" | tee -a ${log_name}
 export UMAP_LOG_LEVEL=ERROR
 export UMAP_BUFSIZE=$swap_cache_size
 ./build/${obj_plmt}_${structure}_skew${4}_update${5} $exec_args | tee -a ${log_name}

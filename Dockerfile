@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++-12 \
     git \
     ca-certificates \
+    python3 \
+    python3-pip \
     sudo \
   && rm -rf /var/lib/apt/lists/* \
   && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11 \
@@ -18,9 +20,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && usermod -aG sudo worker \
   && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-USER worker
 ADD --chown=worker:worker . /workdir
 WORKDIR /workdir
 
+RUN pip install -r pip-requirements.txt
+
+USER worker
 # RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 #   && cmake --build build/
