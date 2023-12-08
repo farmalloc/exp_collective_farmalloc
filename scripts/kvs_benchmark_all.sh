@@ -3,7 +3,7 @@ cd $(dirname $0)
 
 
 function for_all_benchmark_params() {
-  for L in `seq 5 -5 1`
+  for L in `seq 200 -5 1`
   do
     for alpha in 0.8 1.3
     do
