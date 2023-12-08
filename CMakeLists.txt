@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 project(exp_collective_farmalloc)
 
 
-add_subdirectory(artifact)
+add_subdirectory(library)
 
 
 add_library(unoptimized_read OBJECT src/read.cpp)
@@ -18,8 +18,9 @@ foreach(STRUCTURE IN ITEMS b_tree skiplist)
     )
     target_link_libraries(analyze_edges_of_${OBJ_PLMT}_${STRUCTURE} PRIVATE
       farmalloc_compile_ops
+      farmalloc_abst
       farmalloc_impl
-      far_memory_container
+      util
     )
     target_include_directories(analyze_edges_of_${OBJ_PLMT}_${STRUCTURE} PRIVATE include/)
 
@@ -31,8 +32,9 @@ foreach(STRUCTURE IN ITEMS b_tree skiplist)
         target_link_libraries(${OBJ_PLMT}_${STRUCTURE}_skew${ZIPF_SKEWNESS}_update${UPDATE_RATIO} PRIVATE
           farmalloc_compile_ops
           unoptimized_read
+          farmalloc_abst
           farmalloc_impl
-          far_memory_container
+          util
           umap
         )
         target_compile_definitions(${OBJ_PLMT}_${STRUCTURE}_skew${ZIPF_SKEWNESS}_update${UPDATE_RATIO} PRIVATE

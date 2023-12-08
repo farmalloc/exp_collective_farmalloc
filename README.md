@@ -114,6 +114,7 @@ cd /workdir
 scripts/kvs_benchmark.sh btree local+dfs 200 1.3 0.05
 ```
 
+This command will complete in a few minutes.
 The output will look like the followings. If everything went well, the sum of the last two
 numbers is around 5000 (4953 + 0 in this example).
 
