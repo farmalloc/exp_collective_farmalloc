@@ -770,7 +770,7 @@ template <class T, class Alloc> struct LinkedList {
 
 ## List of Errata of the Paper
 
-There were some errors in the paper. This document is based on the corrected version.
+There were some errors in the paper. This document is based on the version before error correction.
 
 * The "Read benchmark" defined in Section 5.1.1 is not necessary.
 * The keys in Figure 10 and 11 are wrong.
