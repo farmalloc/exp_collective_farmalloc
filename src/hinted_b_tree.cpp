@@ -18,23 +18,55 @@ int main()
     constexpr size_t purely_local_capacity = 0;
     constexpr bool batch_blocking = true;
 
+    /***********
+     * instantiation of a collective allocator and a container
+     ***********/
     using namespace FarMemoryContainer::Baseline;
     using namespace FarMalloc;
 
+
+    /***********
+     * instantiation of a collective allocator and a container
+     ***********/
     using Alloc = FarMalloc::HintAllocator<ValueType, PageSize>;
     BTreeMap<Key, Mapped, 2, std::less<Key>, Alloc> map{};
-    std::mt19937 prng;
 
+
+    /***********
+     * insertion of `NumElements` elements
+     ***********/
+    std::mt19937 prng;
     const auto cons_dur = construct(prng, map);
 
+
+    /***********
+     * batch rearrangement of nodes
+     ***********/
     if (batch_blocking) {
         map.batch_block();
     }
 
+
+    /***********
+     * enable remote swapping for the swappable region
+     *
+     * To shorten the experiment time, remote swapping is disabled
+     * until just before the measurement section.
+     * This function enables it, and sets all pages to be flushed.
+     ***********/
     LocalMemoryStore::mode_change();
+    /***********
+     * reset swapping counters to zero
+     *
+     * The counters below are incremented each time a page swaps in/out.
+     ***********/
     LocalMemoryStore::read_cnt = 0;
     LocalMemoryStore::write_cnt = 0;
 
+
+    /***********
+     * running "key-value store benchmark"
+     ***********/
     const auto query_dur = range_query(prng, map);
 
     std::cout << "#NumElements\t"

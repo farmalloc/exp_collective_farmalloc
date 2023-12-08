@@ -14,19 +14,37 @@ int main()
     constexpr size_t purely_local_capacity = 0;
     constexpr bool batch_blocking = true;
 
+
+    /***********
+     * instantiation of a collective allocator and a container
+     ***********/
     using namespace FarMemoryContainer::Baseline;
     using namespace FarMalloc;
 
     using Alloc = FarMalloc::HintAllocator<ValueType, PageSize>;
     SkiplistMap<Key, Mapped, std::less<Key>, Alloc> map{};
-    std::mt19937 prng;
 
+
+    /***********
+     * insertion of `NumElements` elements
+     ***********/
+    std::mt19937 prng;
     const auto cons_dur = construct(prng, map);
 
+
+    /***********
+     * batch rearrangement of nodes
+     ***********/
     if (batch_blocking) {
         map.batch_block();
     }
 
+
+    /***********
+     * calling the method of analysis of links between objects
+     *
+     * `PageSize` is passed because container implementations doesn't know that
+     ***********/
     auto [purely_local_edges, same_page_edges, diff_pages_edges] = map.analyze_edges<PageSize>();
 
     std::cout << "#NumElements\t"

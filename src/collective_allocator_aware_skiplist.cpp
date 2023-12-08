@@ -15,6 +15,9 @@
 
 int main(int argc, char* argv[])
 {
+    /***********
+     * handling of command line arguments
+     ***********/
     if (argc <= 2) {
         std::cerr << "usage: " << argv[0] << " purely_local_capacity(size_t) batch_blocking(0:None/1:DepthFirst)" << std::endl;
         std::quick_exit(EXIT_FAILURE);
@@ -42,20 +45,49 @@ int main(int argc, char* argv[])
     using namespace FarMemoryContainer::Blocked;
     using namespace FarMalloc;
 
+
+    /***********
+     * instantiation of a collective allocator and a container
+     ***********/
     using Alloc = FarMalloc::CollectiveAllocator<ValueType, PageSize>;
     SkiplistMap<Key, Mapped, std::less<Key>, Alloc> map{Alloc{purely_local_capacity}};
-    std::mt19937 prng;
 
+
+    /***********
+     * insertion of `NumElements` elements
+     ***********/
+    std::mt19937 prng;
     const auto cons_dur = construct(prng, map);
 
+
+    /***********
+     * batch rearrangement of nodes for page-aware placement
+     ***********/
     if (batch_blocking) {
         map.batch_block();
     }
 
+
+    /***********
+     * enable remote swapping for the swappable region
+     *
+     * To shorten the experiment time, remote swapping is disabled
+     * until just before the measurement section.
+     * This function enables it, and sets all pages to be flushed.
+     ***********/
     LocalMemoryStore::mode_change();
+    /***********
+     * reset swapping counters to zero
+     *
+     * The counters below are incremented each time a page swaps in/out.
+     ***********/
     LocalMemoryStore::read_cnt = 0;
     LocalMemoryStore::write_cnt = 0;
 
+
+    /***********
+     * running "key-value store benchmark"
+     ***********/
     const auto query_dur = range_query(prng, map);
 
     std::cout << "#NumElements\t"
