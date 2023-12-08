@@ -797,18 +797,18 @@ template <class T, class Alloc> struct LinkedList {
             } catch (...) {
               // page of the next node is full; allocate in a new page
               SubAlloc newpage = node_alloc.get_suballocator(new_per_page);
-              new_n = newpage.alloc(1);
+              new_n = newpage.allocate(1);
             }
           } else {
             // this is the first node outside local memory; allocate in a new page
             SubAlloc newpage = node_alloc.get_suballocator(new_per_page);
-            new_n = newpage.alloc(1);
+            new_n = newpage.allocate(1);
           }
         }
       } else {
         // after_this_node is in a full page; allocate in a new page
         SubAlloc newpage = new_alloc.get_suballocator(new_per_page);
-        new_n = newpage.alloc(1);
+        new_n = newpage.allocate(1);
       }
     }
 
@@ -823,12 +823,14 @@ template <class T, class Alloc> struct LinkedList {
 
 ## List of Errata of the Paper
 
-* 5.1.1章にて、"key-value store benchmark"の一種として*Read benchmark*を定義しているが、これは不要な定義である
-* Figure 10, 11の凡例にて:
+There were some errors in the paper. This document is based on the corrected version.
+
+* The "Read benchmark" defined in Section 5.1.1 is not necessary.
+* The keys in Figure 10 and 11 are wrong.
   * `hint-only` -> `hint`
   * `purely-local aware` -> `local`
   * `page-aware (dfs)` -> `dfs`
   * `purely-local and page-aware (dfs)` -> `local+dfs`
   * `page-aware (vEB)` -> `vEB`
   * `purely-local and page-aware (vEB)` -> `local+vEB`
-* Figure 16のcaptionにて、 "skip list variants" -> "B-tree variants"
+* Caption of Figure 16 is wrong. Figure 16 is not for skip list variants but B-tree variants.
