@@ -402,7 +402,7 @@ Note that a single execution of `scripts/kvs_benchmark_all.sh` will take about 2
 Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19`
 and `scripts/analyze_edges:27`, and to `NIteration` in `include/setting_basis.hpp:20` will
 reduce the execution time.
-For example, execution will complete in **TODO** minutes if we set `NumElements` and `NIteration` to 134217 and 100, respectively.  However, the results will be totally different from Figures 10, 11, and 12.
+For example, execution will complete in 16 minutes if we set `NumElements` and `NIteration` to 134217 and 100, respectively.  However, the results will be totally different from Figures 10, 11, and 12.
 
 ## Tutorial to Use Collective Allocator
 
