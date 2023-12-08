@@ -12,6 +12,9 @@
 
 int main(int argc, char* argv[])
 {
+    /***********
+     * handling of command line arguments
+     ***********/
     if (argc <= 2) {
         std::cerr << "usage: " << argv[0] << " purely_local_capacity(size_t) batch_blocking(0:None/1:DepthFirst/2:vEB)" << std::endl;
         std::quick_exit(EXIT_FAILURE);
@@ -36,15 +39,27 @@ int main(int argc, char* argv[])
         return static_cast<BlockingMode>(tmp);
     }();
 
+
+    /***********
+     * instantiation of a collective allocator and a container
+     ***********/
     using namespace FarMemoryContainer::Blocked;
     using namespace FarMalloc;
 
     using Alloc = FarMalloc::CollectiveAllocator<ValueType, PageSize>;
     BTreeMap<Key, Mapped, 2, std::less<Key>, Alloc> map{Alloc{purely_local_capacity}};
-    std::mt19937 prng;
 
+
+    /***********
+     * insertion of `NumElements` elements
+     ***********/
+    std::mt19937 prng;
     const auto cons_dur = construct(prng, map);
 
+
+    /***********
+     * batch rearrangement of nodes for page-aware placement
+     ***********/
     switch (batch_blocking) {
     case DepthFirst:
         map.batch_block();
@@ -59,6 +74,12 @@ int main(int argc, char* argv[])
         break;
     }
 
+
+    /***********
+     * calling the method of analysis of links between objects
+     *
+     * `PageSize` is passed because container implementations doesn't know that
+     ***********/
     auto [purely_local_edges, same_page_edges, diff_pages_edges] = map.analyze_edges<PageSize>();
 
     std::cout << "#NumElements\t"
