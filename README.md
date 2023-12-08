@@ -304,7 +304,7 @@ where
   * `structure` is either `btree` or `skiplist` and
   * `placement` is one of the lowercase labels bars in Figure 9, such as `dfs`, `veb`, or `local+dfs`.
 
-The expected output for each variant is stored in the `TODO` directory. **TODO**
+The expected output for each variant is placed in the `TODO` directory of this artifact. **TODO**
 
 Note that a single execution of ``analyze_edges.sh`` will complete in a few minutes.
 Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19` will
@@ -362,7 +362,7 @@ where
   * `skewness`, $\alpha$, is the skewness of the data (Zipfan skewness); either 0.8 or 1.3
   * `update-ratio`, $U$, is the fraction of update queries in the data; either 0.05 or 0.5.
 
-The expected output for each variant is stored in the `TODO` directory. **TODO**
+The expected output for each (variant? execution? **TODO**) is placed in the `TODO` directory of this artifact. **TODO**
 
 Note that a single execution of ``analyze_edges.sh`` will complete in a few minutes.
 Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19` will
