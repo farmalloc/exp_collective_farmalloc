@@ -80,7 +80,7 @@ $ git clone --recurse-submodules git@github.com:farmalloc/exp_collective_farmall
 
 #### Build
 
-Build the artifact and benchmarking programs with the following commands.
+Build the artifact and benchmark programs with the following commands.
 
 ```bash
 cd /workdir
@@ -90,15 +90,14 @@ cmake --build build/
 ```
 
 <details>
-<summary>Warnings that are safe to be ignored</summary>
+<summary>Expected warnings</summary>
 
-* ```
-  /workdir/library/farmalloc_impl/umap/src/umap/Uffd.cpp:167:8: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
-  ```
-* ```
-  /workdir/library/farmalloc_impl/include/public/farmalloc/hint_allocator.ipp:270:10: warning: pointer used after 'void operator delete(void*, std::size_t)' [-Wuse-after-free]
-  ```
-  * It seems to be an incorrect check of g++.
+The following warnings are expected.
+
+```
+/workdir/library/farmalloc_impl/umap/src/umap/Uffd.cpp:167:8: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+/workdir/library/farmalloc_impl/include/public/farmalloc/hint_allocator.ipp:270:10: warning: pointer used after 'void operator delete(void*, std::size_t)' [-Wuse-after-free]
+```
 </details>
 
 ### Testing the Artifact
@@ -151,6 +150,10 @@ Following subsections describes how to confirm these facts.
 
 #### Container Implementations
 
+Here, we show our implementations in this artifact match the examples in 
+Section 4 (Figures 7, 8, 13, and 15)
+and the evaluation in Section 5.2 (Table 3).
+
 The implementations of the B-tree and the skip list are placed in
 the `include/far_memory_container` directory. Correspondence between
 the container variant names in the paper (listed in Section 5.2) and 
@@ -165,7 +168,7 @@ source files are summarized in the following table.
 |`local` skip list <br> `local+page` skip list|`include/far_memory_container/blocked/skiplist.hpp`|
 |`page` skip list|`include/far_memory_container/page_aware/skiplist.hpp`|
 
-Note that `hint` B-tree and `hint` skip list do not use collective allocator. They used the standard C++ allocator.
+Note that `hint` B-tree and `hint` skip list do not use the collective allocator. They use the standard C++ allocator.
 
 ##### Correspondence between examples in Section 4 and source code of implementations
 
@@ -235,11 +238,11 @@ As we showed in the previous table, a single set of source files implements mult
 variants of containers.  For example, `local` B-tree, `local+dfs` B-tree, and `local-vEB`
 B-tree are implemented in the same source file. Thus, we separated implementations so
 that each separated implementation contains
-only the variant specific code and common code used by the variant.
+only code specific to a single variant and common code used by the variant.
 Separate implementations are stored in the `for_code_diff` directory.
 
 Amount of different lines (Table 3 in the paper) are counted by comparing with
-the files for the baseline and those for the separated implementation.
+the files for the baseline and those for the separate implementation.
 For `local+dfs` B-tree, for example, the following command gives the amount of
 differences.
 
@@ -248,7 +251,7 @@ cd /workdir/for_code_diff
 diff -rywW1 b_tree/baseline b_tree/local_dfs | sort | uniq -c
 ```
 
-Following expected output shows there are 7 dels (`<`), 160 adds (`>`), and 19 modifies (`|`).
+Following expected output shows that there are 7 dels (`<`), 160 adds (`>`), and 19 modifies (`|`).
 These numbers match those of `local+dfs` in Table 3a.
 
 ```
@@ -262,8 +265,8 @@ These numbers match those of `local+dfs` in Table 3a.
      19 |
 ```
 
-Directories for separate implementations are summarized
-in the following table. Note that baselines are created from `hint` containers
+Directories for separate implementations are listed
+in the following table. Note that baselines are created from the `hint` containers
 by removing allocation hint parameters.  Also note that inessential differences
 such as those in measurement code and include paths are eliminated from
 the separate implementation.
@@ -286,7 +289,7 @@ the separate implementation.
 #### Cross-page link analysis (Figure 9 in Section 5.2)
 
 The files `src/analyze_edges_*.cpp` are benchmark drivers for the cross-page link analysis.
-Through the [build](#build) section in the Getting Started Guide, they have already compiled
+Through the [Build](#build) section in the Getting Started Guide, they have already been compiled
 into the `build` directory.
 
 They can be executed using the `scripts/analyze_edges.sh` script. The following
@@ -320,7 +323,7 @@ analyze_edges.sh structure placement
 
 where
   * `structure` is either `btree` or `skiplist` and
-  * `placement` is one of the lowercase labels bars in Figure 9, such as `dfs`, `veb`, or `local+dfs`.
+  * `placement` is one of the lowercase labels of bars in Figure 9, such as `dfs`, `veb`, and `local+dfs`.
 
 The expected output for each variant is placed in the `expected_outputs/cross-page_link_analysis/` directory of this artifact.
 
