@@ -16,5 +16,6 @@ docker run -it \
   collective_farmalloc:latest
 ```
 
-`userfaultfd` システムコールを呼べるようにするために、カーネルとコンテナランタイムそれぞれでパラメータの設定が必要である。
-コンテナランタイムの設定の[デフォルト値](https://github.com/moby/moby/blob/2a38569337f97168792b8c0b5dd606032fe1dcac/profiles/seccomp/default.json)からの差分は、 `syscalls > names` に `userfaultfd` を加えたことだけである。
+Note: Because the far-memory library calls the `userfaultfd` system call,
+we allow it by using `sysctl` and the security option (`--security-opt`). You can confirm validity of the security
+option in `docker_seccomp.json` by comparing it with the [default setting](https://github.com/moby/moby/blob/2a38569337f97168792b8c0b5dd606032fe1dcac/profiles/seccomp/default.json).
