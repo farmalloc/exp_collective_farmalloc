@@ -34,6 +34,13 @@ These components are placed in the following directories in the default user's h
   * `src`: benchmarking related programs (benchmark drivers)
   * `scripts`: benchmarking related programs (scripts)
 
+### Prerequisites
+
+  * Ubuntu 22.04 (LTS)
+    + Linux 5.15.133 x86_64 (tested but not necessarily required)
+  * Docker
+    + Version 24.0.7 (tested but not necessarily required)
+
 ### Play around
 
 Let's install the building environment, build the artifact, and play around the benchmark program.
@@ -60,12 +67,11 @@ option in `docker_seccomp.json` by comparing it with the [default setting](https
 <details>
 <summary>How to try without Docker</summary>
 
-#### Prerequisites
+#### Additional Prerequisites
 
-  * Linux (ubuntu 22.04)
   * CMake (version 3.13<!-- TODO: check --> or later)
   * Make or Ninja
-  * C++ compiler (C++20 support is required; tested with gcc 12.3.0)
+  * C++ compiler (C++20 support is required; gcc 12.3.0 was tested)
 
 #### Download the artifact
 
