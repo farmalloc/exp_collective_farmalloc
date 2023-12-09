@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ADD --chown=worker:worker . /workdir
 WORKDIR /workdir
 
-RUN pip install -r pip-requirements.txt
+RUN pip install --no-cache-dir -r pip-requirements.txt
 
 USER worker
 # RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
