@@ -17,8 +17,7 @@ This document contains
 ## Getting Started Guide
 ### Components
 
-The artifact is provided as a Docker image.
-The image contains three main components:
+This artifact package contains three main components:
 
   * The collective allocator library, which is the artifact.
   * Variety of B-tree and skip list implementations using the collective allocator library. They are listed in Section 5.2 in the paper.
@@ -33,6 +32,8 @@ These components are placed in the following directories in the default user's h
   * `include`: benchmarking related programs (data generator)
   * `src`: benchmarking related programs (benchmark drivers)
   * `scripts`: benchmarking related programs (scripts)
+
+The environment for Artifact Evaluation is supposed to be a Docker image built with provided `Dockerfile`.
 
 ### Prerequisites
 
@@ -49,14 +50,16 @@ Let's install the building environment, build the artifact, and play around the 
 
 The source code of the artifact and all necessary packages are installed in the Docker image.
 
-  1. Download the ZIP file from [here](TODO: link) and unpack it. The Docker image `collective_farmalloc` and a security option file `docker_seccomp.json` will be extracted.
-  2. Run the Docker image with the following commands.
+  1. Download `artifact.zip` from [here](TODO: link)
+  2. `unzip artifact.zip`, where an `exp_collective_farmalloc` directory is extracted.
+  3. `docker build -t collective_farmalloc exp_collective_farmalloc`
+  4. Run the Docker image `collective_farmalloc` with the following commands.
 
 ```bash
 sudo sysctl vm.unprivileged_userfaultfd=1
-docker run -it \
-  --security-opt seccomp=./docker_seccomp.json \
-  collective_farmalloc  # name of docker image
+docker run -it --rm --name console \
+  --security-opt seccomp=exp_collective_farmalloc/docker_seccomp.json \
+  collective_farmalloc
 ```
 
 Note: Because the far-memory library calls the `userfaultfd` system call,
@@ -76,11 +79,12 @@ option in `docker_seccomp.json` by comparing it with the [default setting](https
 #### Download the artifact
 
 Clone our git repository and its submodules recursively.
-All the artifact files installed in the Docker image will be downloaded in `exp_clloective_farmalloc` directory.
 
 ```bash
 $ git clone --recurse-submodules git@github.com:farmalloc/exp_collective_farmalloc.git
 ```
+
+The checked-out directory `exp_collective_farmalloc` is the same as the one extracted from `artifact.zip`.
 
 </details>
 
