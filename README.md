@@ -428,6 +428,8 @@ The interface is as follows.
 template <class T, class Alloc> struct LinkedList {
   struct Node { Node *next, *prev; T value; };
 
+  LinkedList(const Alloc& alloc) {}
+
   /* `header->next`: same as `header` if empty, a pointer to the first element otherwise
      `header->prev`: same as `header` if empty, a pointer to the last element otherwise */
   Node* header;
@@ -446,7 +448,9 @@ The `LinkedList` container is expected to be used as follows.
 using namespace FarMalloc;
 
 int main() {
-  LinkedList<int, CollectiveAllocator<int, /* size of one page */ 4096>> list;
+  using CollAlloc = CollectiveAllocator<int, /* size of one page */ 4096>;
+  constexpr size_t purely_local_capacity = 10000;
+  LinkedList<int, CollAlloc> list{CollAlloc{purely_local_capacity}};
 
   /* ... use `list` ... */
 }
@@ -462,7 +466,9 @@ add_executable(use_linked_list
 )
 target_link_libraries(use_linked_list PRIVATE
   farmalloc_impl
+  farmalloc_abst
 )
+target_include_directories(use_linked_list PRIVATE include/)
 ```
 
 Now, we can build `/build/use_linked_list`, which creates a `LinkedList` and does nothing.
@@ -481,11 +487,13 @@ for `Node` type to the `LinkedList` struct. We also define two type names, `Node
 and `SubAlloc`. `SubAlloc` is the type of sub-allocator, which is characteristic of
 the collective allocator.
 
-Edit `include/linked_list.hpp` as follows (add three lines).
+Edit `include/linked_list.hpp` as follows (add three lines and replace the 1-line constructor).
 
 ```cpp
 template <class T, class Alloc> struct LinkedList {
   /* struct Node { ... }; */
+
+  LinkedList(const Alloc& alloc) : node_alloc(alloc) {}
 
   using NodeAlloc = typename Alloc::template rebind<Node>::other;
   NodeAlloc node_alloc;
@@ -687,11 +695,12 @@ template <class T, class Alloc> struct LinkedList {
     node_alloc.deallocate(node, 1);
 
     if (need_relocation) {
+      Node* relocated_from = least_priority->next;
       Node* relocated_to = purelylocal.allocate(1);
-      new (relocated_to) Node{std::move(*least_priority->next)};
+      new (relocated_to) Node{std::move(*relocated_from)};
       relocated_to->prev->next = relocated_to->next->prev = relocated_to;
-      least_priority->next->~Node();
-      node_alloc.deallocate(least_priority->next, 1);
+      relocated_from->~Node();
+      node_alloc.deallocate(relocated_from, 1);
 
       least_priority = relocated_to;
     }
@@ -760,7 +769,7 @@ template <class T, class Alloc> struct LinkedList {
         }
       } else {
         // after_this_node is in a full page; allocate in a new page
-        SubAlloc newpage = new_alloc.get_suballocator(new_per_page);
+        SubAlloc newpage = node_alloc.get_suballocator(new_per_page);
         new_n = newpage.allocate(1);
       }
     }
