@@ -64,7 +64,7 @@ docker run -it --rm --name console \
 
 Now, you are on the home directory `/workdir`, which is the default directory in the rest of the instructions here.
 
-Note: Because the far-memory library calls the `userfaultfd` system call,
+**Note**: Because the far-memory library calls the `userfaultfd` system call,
 we allow it by using `sysctl` and the security option (`--security-opt`). You can confirm validity of the security
 option in `docker_seccomp.json` by comparing it with the [default setting](https://github.com/moby/moby/blob/2a38569337f97168792b8c0b5dd606032fe1dcac/profiles/seccomp/default.json).
 
@@ -78,7 +78,7 @@ option in `docker_seccomp.json` by comparing it with the [default setting](https
   * Make or Ninja
   * C++ compiler (C++20 support is required; gcc 12.3.0 was tested)
 
-#### Download the artifact
+#### Download the Artifact
 
 Clone our git repository and its submodules recursively.
 
@@ -181,7 +181,7 @@ source files are summarized in the following table.
 
 Note that `hint` B-tree and `hint` skip list do not use the collective allocator. They use the standard C++ allocator.
 
-##### Correspondence between examples in Section 4 and source code of implementations
+##### Correspondence between Examples in Section 4 and the Source Code
 
 In Section 4 in the paper, we picked `local+dfs` B-tree as an example to
 demonstrate how to use our collective allocator using Figure 7, 8, and 13.
@@ -238,7 +238,7 @@ Line-by-line correspondence for the significant lines are listed in the followin
 
 </details>
 
-##### Amount of code differences between baseline and containers using the collective allocator (Table 3 in the paper)
+##### Amount of Code Difference (Table 3 in Section 5.3)
 
 In Table 3 in the paper, we counted the number of different lines between the baselines
 and the containers using the collective allocator using the `diff` command. Here the 
@@ -297,7 +297,7 @@ the separate implementation.
 |`local+page` skip list|`for_code_diff/skip_list/local_page`|
 |`page` skip list|`for_code_diff/skip_list/page`|
 
-#### Cross-page link analysis (Figure 9 in Section 5.2)
+#### Cross-Page Link Analysis (Figure 9 in Section 5.2)
 
 The files `src/analyze_edges_*.cpp` are benchmark drivers for the cross-page link analysis.
 Through the [Build](#build) section in the Getting Started Guide, they have already been compiled
@@ -341,7 +341,7 @@ Note that a single execution of ``analyze_edges.sh`` will complete in a few minu
 Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19` and `scripts/analyze_edges:27` will
 reduce the execution time.
 
-##### Execute all with a single command
+##### Run All for Figure 9
 
 The `scripts/analyze_edges_all.sh` script executes the benchmark program for all container variants, and
 the `scripts/figure9.sh` script reproduce the charts in Figure 9.
@@ -398,7 +398,7 @@ Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19`
 and `scripts/analyze_edges:27`, and to `NIteration` in `include/setting_basis.hpp:20` will
 reduce the execution time.
 
-##### Execute all with a single command
+##### Run All for Figures 10, 11, and 12
 
 The `scripts/kvs_benchmark_all.sh` script executes the benchmark program for all container variants with
 all combinations of parameters to reproduce Figures 10, 11, and 12.
