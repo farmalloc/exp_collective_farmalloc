@@ -93,7 +93,7 @@ cmake --build build/
 <details>
 <summary>Expected warnings</summary>
 
-The following warnings are expected.
+The following warnings may arise but be safe to ignore.
 
 ```
 /workdir/library/farmalloc_impl/umap/src/umap/Uffd.cpp:167:8: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
