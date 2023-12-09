@@ -69,7 +69,7 @@ option in `docker_seccomp.json` by comparing it with the [default setting](https
 
 <!-- リポジトリのREADMEを兼ねたいので、邪魔にならないようにこちらも書く -->
 <details>
-<summary>How to try without Docker</summary>
+<summary>Installation without Docker</summary>
 
 Additional prerequisites:
 
@@ -77,7 +77,7 @@ Additional prerequisites:
   * Make or Ninja
   * C++ compiler (C++20 support is required; gcc 12.3.0 was tested)
 
-Installation:
+Installation from GitHub:
 
 * Clone our git repository and its submodules recursively.
   - The checked-out directory `exp_collective_farmalloc` is the same as the one extracted from `artifact.zip`.
