@@ -62,6 +62,8 @@ docker run -it --rm --name console \
   collective_farmalloc
 ```
 
+Now, you are on the home directory `/workdir`, which is the default directory in the rest of the instructions here.
+
 Note: Because the far-memory library calls the `userfaultfd` system call,
 we allow it by using `sysctl` and the security option (`--security-opt`). You can confirm validity of the security
 option in `docker_seccomp.json` by comparing it with the [default setting](https://github.com/moby/moby/blob/2a38569337f97168792b8c0b5dd606032fe1dcac/profiles/seccomp/default.json).
@@ -94,7 +96,6 @@ The checked-out directory `exp_collective_farmalloc` is the same as the one extr
 Build the artifact and benchmark programs with the following commands.
 
 ```bash
-cd /workdir
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
 # to use Makefile: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build/
@@ -120,7 +121,6 @@ This reproduces the result corresponding to the right most dark gray (purely-loc
 plot in Figure 10c in the paper.
 
 ```bash
-cd /workdir
 scripts/kvs_benchmark.sh btree local+dfs 200 1.3 0.05
 ```
 
@@ -258,7 +258,7 @@ For `local+dfs` B-tree, for example, the following command gives the amount of
 differences.
 
 ```bash
-cd /workdir/for_code_diff
+cd for_code_diff
 diff -rywW1 b_tree/baseline b_tree/local_dfs | sort | uniq -c
 ```
 
@@ -308,7 +308,6 @@ command counts the number of edges for each edge type for the `hint` B-tree,
 which corresponds to `hint` in Figure 9a.
 
 ```bash
-cd /workdir
 scripts/analyze_edges.sh btree hint
 ```
 
@@ -348,7 +347,6 @@ The `scripts/analyze_edges_all.sh` script executes the benchmark program for all
 the `scripts/figure9.sh` script reproduce the charts in Figure 9.
 
 ```bash
-cd /workdir
 scripts/analyze_edges_all.sh
 scripts/figure9.sh
 ```
@@ -377,7 +375,6 @@ corresponding to the right most dark gray (purely-local & page-aware (dfs))
 plot in Figure 10c in the paper.
 
 ```bash
-cd /workdir
 scripts/kvs_benchmark.sh btree local+dfs 200 1.3 0.05
 ```
 
@@ -408,7 +405,6 @@ all combinations of parameters to reproduce Figures 10, 11, and 12.
 The `scripts/figure_10_11_12.sh` script reproduces these figures.
 
 ```bash
-cd /workdir
 scripts/kvs_benchmark_all.sh
 scripts/figure_10_11_12.sh
 ```
@@ -484,7 +480,6 @@ target_include_directories(use_linked_list PRIVATE include/)
 Now, we can build `/build/use_linked_list`, which creates a `LinkedList` and does nothing.
 
 ```bash
-cd /workdir
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
 # to use Makefile: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build/
