@@ -72,24 +72,22 @@ option in `docker_seccomp.json` by comparing it with the [default setting](https
 <details>
 <summary>How to try without Docker</summary>
 
-#### Additional Prerequisites
+Additional prerequisites:
 
   * CMake (version 3.13<!-- TODO: check --> or later)
   * Make or Ninja
   * C++ compiler (C++20 support is required; gcc 12.3.0 was tested)
 
-#### Download the Artifact
+Installation:
 
-Clone our git repository and its submodules recursively.
+* Clone our git repository and its submodules recursively.
+  - The checked-out directory `exp_collective_farmalloc` is the same as the one extracted from `artifact.zip`.
 
 ```bash
 $ git clone --recurse-submodules git@github.com:farmalloc/exp_collective_farmalloc.git
 ```
 
-The checked-out directory `exp_collective_farmalloc` is the same as the one extracted from `artifact.zip`.
-
 </details>
-
 
 #### Build
 
@@ -112,7 +110,7 @@ The following warnings may arise but are not problematic.
 ```
 </details>
 
-### Testing the Artifact
+#### Testing the Artifact
 
 Let's execute a benchmark program of a B-tree using our collective allocator library.
 Here, we use the `local+dfs` variant of the B-tree (see Section 5.2) and
