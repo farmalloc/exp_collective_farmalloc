@@ -184,7 +184,7 @@ Note that `hint` B-tree and `hint` skip list do not use the collective allocator
 ##### Correspondence between Examples in Section 4 and the Source Code
 
 In Section 4 in the paper, we picked `local+dfs` B-tree as an example to
-demonstrate how to use our collective allocator using Figure 7, 8, and 13.
+demonstrate how to use our collective allocator using Figures 7, 8, and 13.
 Figure 15 also demonstrates it using `local+vEB` B-tree as an example.
 The functions in the figures correspond to the functions in `include/far_memory_container/blocked/b_tree.ipp`.
 
@@ -365,7 +365,7 @@ are benchmark drivers for this experimentation.  Through the [Build](#build)
 section in the Getting Started Guide, they have already been compiled into the `build` directory.
 
 The benchmark programs can be executed though `scripts/kvs_benchmark.sh`. A single execution
-gives a number for a single data point in Figure 10, 11, and 12. We have already
+gives a number for a single data point in Figures 10, 11, and 12. We have already
 tried it in [Testing the Artifact](#testing-the-artifact) section in the Getting Started
 Guide.
 
@@ -589,7 +589,7 @@ In the initialization code for `header`, we try to allocate from
 the `purely_local` sub-allocator instead of the `swappable_plain` one.
 The `allocate` method of the `purely_local` sub-allocator throws an
 exception when local memory is full. In such a case, we allocate
-memory from the `sappable_plain` sub-allocator.
+memory from the `swappable_plain` sub-allocator.
 
 When we successfully allocate memory from the `purely_local` sub-allocator,
 we track it with `least_priority` as it is the only `Node` in local memory.
