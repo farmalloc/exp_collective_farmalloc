@@ -11,6 +11,7 @@ This document contains
   * [List of claims](#overview-of-claims)
   * [Step-by-step instructions to reproduce the results in the paper](#step-by-step-instructions)
   * [Short tutorial to use the artifact](#when-you-create-your-own-container)
+  * [List of errata of the paper](#list-of-errata-of-the-paper)
 
 
 ## Getting Started Guide
