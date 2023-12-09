@@ -50,7 +50,7 @@ Let's install the building environment, build the artifact, and run the benchmar
 
 The source code of the artifact and all necessary packages are installed in the Docker image.
 
-  1. Download `artifact.zip` from [here](TODO: link)
+  1. Download `artifact.zip` from [here](https://drive.google.com/file/d/11Xq1n8MLgZBarGlHsE2SD8uEMtDwHIxs/view?usp=sharing)
   2. `unzip artifact.zip`, where an `exp_collective_farmalloc` directory is extracted.
   3. `docker build -t collective_farmalloc exp_collective_farmalloc`
   4. Run the Docker image `collective_farmalloc` with the following commands.
