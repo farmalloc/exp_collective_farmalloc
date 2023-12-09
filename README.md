@@ -20,18 +20,18 @@ This document contains
 This artifact package contains three main components:
 
   * The collective allocator library, which is the artifact.
-  * Variety of B-tree and skip list implementations using the collective allocator library. They are listed in Section 5.2 in the paper.
-  * Benchmarking related programs and scripts, including benchmark drivers (programs that uses the B-trees and the skip lists).
+  * The B-tree and skip list implementations using the collective allocator library, which are listed in Section 5.2 in the paper.
+  * The benchmark suite, including benchmark drivers (i.e., programs that uses the B-trees and the skip lists).
 
-In addition, a git repository of [UMap](https://github.com/farmalloc/umap), a user-level page cache library, with our bug fix (commit cb294ef) is included.
+In addition, a git repository of [UMap](https://github.com/farmalloc/umap), a user-level page cache library, with our bugfix (commit `cb294ef`) is included.
 These components are placed in the following directories in the default user's home directory `/workdir`:
 
   * `library`: the collective allocator library
   * `library/farmalloc_impl/umap`: UMap library
   * `include/far_memory_container`: B-tree and skip list implementations
-  * `include`: benchmarking related programs (data generator)
-  * `src`: benchmarking related programs (benchmark drivers)
-  * `scripts`: benchmarking related programs (scripts)
+  * `include`: the benchmark suite (data generator)
+  * `src`: the benchmark suite (benchmark drivers)
+  * `scripts`: the benchmark suite (scripts for experiments)
 
 The environment for Artifact Evaluation is supposed to be a Docker image built with provided `Dockerfile`.
 
@@ -42,9 +42,9 @@ The environment for Artifact Evaluation is supposed to be a Docker image built w
   * Docker
     + Version 24.0.7 (tested but not necessarily required)
 
-### Play around
+### Basic Testing
 
-Let's install the building environment, build the artifact, and play around the benchmark program.
+Let's install the building environment, build the artifact, and run the benchmark program.
 
 #### Installation
 
@@ -102,9 +102,9 @@ cmake --build build/
 ```
 
 <details>
-<summary>Expected warnings</summary>
+<summary>Harmless warnings</summary>
 
-The following warnings may arise but be safe to ignore.
+The following warnings may arise but are not problematic.
 
 ```
 /workdir/library/farmalloc_impl/umap/src/umap/Uffd.cpp:167:8: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
