@@ -11,7 +11,7 @@ This document contains
   * [List of claims](#overview-of-claims)
   * [Step-by-step instructions to reproduce the results in the paper](#step-by-step-instructions)
   * [Short tutorial to use the artifact](#when-you-create-your-own-container)
-  * [List of errata of the paper](#list-of-errata-of-the-paper)
+  * [Errata of the paper](#errata-of-the-paper)
 
 
 ## Getting Started Guide
@@ -787,17 +787,18 @@ template <class T, class Alloc> struct LinkedList {
 ```
 
 
+## Errata of the Paper
 
-## List of Errata of the Paper
+There are some typos and minor errors in the Evaluation section of the submission paper.
+This document is based on the version before error correction.
 
-There were some errors in the paper. This document is based on the version before error correction.
-
-* The "Read benchmark" defined in Section 5.1.1 is not necessary.
-* The keys in Figure 10 and 11 are wrong.
+* The "Read benchmark" defined in Section 5.1.1 is obsolete and not used.
+* The legends of Figs. 10 and 11 contain typos to be corrected as
   * `hint-only` -> `hint`
   * `purely-local aware` -> `local`
   * `page-aware (dfs)` -> `dfs`
   * `purely-local and page-aware (dfs)` -> `local+dfs`
   * `page-aware (vEB)` -> `vEB`
   * `purely-local and page-aware (vEB)` -> `local+vEB`
-* Caption of Figure 16 is wrong. Figure 16 is not for skip list variants but B-tree variants.
+* The caption of Figure 16 is incorrect: it is not for skip list variants but B-tree variants.
+* Figure 11 is not referred to: the second paragraph of Section 5.3 should have referred to both Figs. 10 and 11.
