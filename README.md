@@ -353,15 +353,15 @@ This claim is supported by the experimentation in Section 5.3, where we
 executed the benchmark programs and counted the number of swapping.
 
 The remaining files in the `src` directory (those that do not start with `analyze_edges`)
-are benchmark drivers for this experimentation.  Through the [build](#build)
-section in the Getting Started Guide, they have already compiled into the `build` directory.
+are benchmark drivers for this experimentation.  Through the [Build](#build)
+section in the Getting Started Guide, they have already been compiled into the `build` directory.
 
 The benchmark programs can be executed though `scripts/kvs_benchmark.sh`. A single execution
 gives a number for a single data point in Figure 10, 11, and 12. We have already
 tried it in [Testing the Artifact](#testing-the-artifact) section in the Getting Started
 Guide.
 
-For short, the following command will give the number of swapping for the
+In short, the following command will give the number of swapping for the
 `local+dfs` variant of the B-tree with $L=200$, $\alpha=1.3$ and $U=0.05$,
 corresponding to the right most dark gray (purely-local & page-aware (dfs))
 plot in Figure 10c in the paper.
