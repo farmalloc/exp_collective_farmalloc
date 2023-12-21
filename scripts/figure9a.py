@@ -19,8 +19,6 @@ def main():
     plt.style.use('tableau-colorblind10')
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
     plt.rcParams['axes.prop_cycle'] += cycler(marker=markers)
-    rcParams["text.usetex"] = True
-    rcParams['text.latex.preamble'] = '\\usepackage{sfmath}'
 
     log_dir = os.path.join(os.path.dirname(__file__),
                            "../logs")
@@ -46,7 +44,7 @@ def main():
 
     fig = plt.figure(figsize=(5.9, 1.2))
     ax = fig.add_subplot(1, 1, 1)
-    ax.set_xlabel(r"composition ratio of links in each category [\%]")
+    ax.set_xlabel(r"composition ratio of links in each category [%]")
 
     positions = list(range(len(keys)))
     offsets = np.zeros(len(keys), dtype=np.float64)
@@ -57,7 +55,7 @@ def main():
 
         bar_color = colors[i]
         brightness = colorsys.rgb_to_hls(*m_col.to_rgb(bar_color))[1]
-        ax.bar_label(stock, labels=[("" if r < 0.1 else str(int(r)) + "\\%") for r in persentage], label_type='center',
+        ax.bar_label(stock, labels=[("" if r < 0.1 else str(int(r)) + "%") for r in persentage], label_type='center',
                      color=("white" if brightness < 0.5 else "black"))
         offsets += persentage
 

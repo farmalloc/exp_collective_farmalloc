@@ -17,8 +17,6 @@ def main():
     plt.style.use('tableau-colorblind10')
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
     plt.rcParams['axes.prop_cycle'] += cycler(marker=markers)
-    rcParams["text.usetex"] = True
-    rcParams['text.latex.preamble'] = '\\usepackage{sfmath}'
 
     log_dir = os.path.join(os.path.dirname(__file__),
                            "../logs")
@@ -32,7 +30,7 @@ def main():
     data["hint-only"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_hint_btree.log"), dtype=dtype, ndmin=2)
     data["purely-local aware"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local_btree.log"), dtype=dtype, ndmin=2)
     data["page-aware (dfs)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_dfs_btree.log"), dtype=dtype, ndmin=2)
-    data["purely-local \\& page-aware (dfs)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local+dfs_btree.log"), dtype=dtype, ndmin=2)
+    data["purely-local & page-aware (dfs)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local+dfs_btree.log"), dtype=dtype, ndmin=2)
 
     for variant in data.keys():
         used_local_buf = (data[variant]["PurelyLocalCapacity"] + data[variant]["UMAP_BUFSIZE"]
@@ -47,7 +45,7 @@ def main():
     for zipf_skewness, update_ratio, subfigure_idx in ((0.8, 0.05, "a"), (0.8, 0.5, "b"), (1.3, 0.05, "c"), (1.3, 0.5, "d")):
         fig = plt.figure(figsize=(2.55, 1))
         ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlabel(r"$L =$(local memory usage)/(data size) [\%]")
+        ax.set_xlabel(r"$L =$(local memory usage)/(data size) [%]")
         ax.set_ylabel(r"amount of swapped data")
         ax.yaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
         ax.ticklabel_format(style="sci", axis="y", scilimits=(0, 0))
