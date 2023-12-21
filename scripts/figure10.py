@@ -31,8 +31,8 @@ def main():
     data = {}
     data["hint-only"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_hint_btree.log"), dtype=dtype, ndmin=2)
     data["purely-local aware"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local_btree.log"), dtype=dtype, ndmin=2)
-    data["purely-local \\& page-aware (dfs)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local+dfs_btree.log"), dtype=dtype, ndmin=2)
     data["page-aware (dfs)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_dfs_btree.log"), dtype=dtype, ndmin=2)
+    data["purely-local \\& page-aware (dfs)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local+dfs_btree.log"), dtype=dtype, ndmin=2)
 
     for variant in data.keys():
         used_local_buf = (data[variant]["PurelyLocalCapacity"] + data[variant]["UMAP_BUFSIZE"]
