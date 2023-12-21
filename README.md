@@ -5,7 +5,7 @@ This document contains
   * [Getting started guide](#getting-started-guide)
   * [List of claims](#overview-of-claims)
   * [Step-by-step instructions to reproduce the results in the paper](#step-by-step-instructions)
-  * [Short tutorial to use the artifact](#when-you-create-your-own-container)
+  * [Short tutorial to use the artifact](#tutorial-to-use-collective-allocator)
   * [Errata of the paper](#errata-of-the-paper)
 
 
@@ -194,7 +194,7 @@ The functions in the figures correspond to the functions in `include/far_memory_
 
 Line-by-line correspondence for the significant lines are listed in the following table.
 
-|Figure #|line in figure|line in `b_tree.ipp`|
+|figure|line in figure|line in `b_tree.ipp`|
 |-:|-:|-:|
 |7|18|232|
 |7|20, 21|254, 255|
