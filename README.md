@@ -37,6 +37,8 @@ The environment for Artifact Evaluation is supposed to be a Docker image built w
   * Docker
     + Version 24.0.7 (tested but not necessarily required)
 
+**Note**: The artifact is not guaranteed to run in environments with less computing resources than those specified in `dump_env_result.txt`.
+
 ### Basic Testing
 
 Let's install the building environment, build the artifact, and run the benchmark program.
