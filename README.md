@@ -65,6 +65,24 @@ Now, you are on the home directory `/workdir`, which is the default directory in
 we allow it by using `sysctl` and the security option (`--security-opt`). You can confirm validity of the security
 option in `docker_seccomp.json` by comparing it with the [default setting](https://github.com/moby/moby/blob/2a38569337f97168792b8c0b5dd606032fe1dcac/profiles/seccomp/default.json).
 
+<details>
+<summary>Installation of pre-built Docker image</summary>
+
+A pre-built Docker image is available on [GitHub Container Registry](https://ghcr.io/farmalloc/collective_farmalloc).
+You can pull it with the following command.
+
+```bash
+docker pull ghcr.io/farmalloc/collective_farmalloc:latest
+```
+
+To make the image name the same as above, run the following command.
+
+```bash
+docker tag ghcr.io/farmalloc/collective_farmalloc:latest collective_farmalloc:latest
+```
+
+</details>
+
 <!-- リポジトリのREADMEを兼ねたいので、邪魔にならないようにこちらも書く -->
 <details>
 <summary>Installation without Docker</summary>

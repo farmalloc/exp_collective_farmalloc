@@ -29,3 +29,5 @@ RUN pip install --no-cache-dir -r pip-requirements.txt
 USER worker
 # RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 #   && cmake --build build/
+
+LABEL org.opencontainers.image.source https://github.com/farmalloc/exp_collective_farmalloc
