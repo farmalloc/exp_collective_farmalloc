@@ -83,13 +83,12 @@ docker tag ghcr.io/farmalloc/collective_farmalloc:latest collective_farmalloc:la
 
 </details>
 
-<!-- リポジトリのREADMEを兼ねたいので、邪魔にならないようにこちらも書く -->
 <details>
 <summary>Installation without Docker</summary>
 
 Additional prerequisites:
 
-  * CMake (version 3.13<!-- TODO: check --> or later)
+  * CMake (version 3.13 or later)
   * Make or Ninja
   * C++ compiler (C++20 support is required; gcc 12.3.0 was tested)
 
