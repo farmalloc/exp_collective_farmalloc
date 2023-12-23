@@ -33,7 +33,7 @@ The environment for Artifact Evaluation is supposed to be a Docker image built w
 ### Prerequisites
 
   * Ubuntu 22.04 (LTS)
-    + Linux 5.15.133 x86_64 (tested but not necessarily required)
+    + Linux 6.2.0 x86_64 (tested but not necessarily required)
   * Docker
     + Version 24.0.7 (tested but not necessarily required)
 
