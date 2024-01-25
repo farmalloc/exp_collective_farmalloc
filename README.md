@@ -6,7 +6,6 @@ This document contains
   * [List of claims](#overview-of-claims)
   * [Step-by-step instructions to reproduce the results in the paper](#step-by-step-instructions)
   * [Short tutorial to use the artifact](#tutorial-to-use-collective-allocator)
-  * [Errata of the paper](#errata-of-the-paper)
 
 
 ## Getting Started Guide
