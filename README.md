@@ -15,7 +15,7 @@ This document contains
 This artifact package contains three main components:
 
   * The collective allocator library, which is the artifact.
-  * The B-tree and skip list implementations using the collective allocator library, which are listed in Section 5.2 in the paper.
+  * The B-tree and skip list implementations using the collective allocator library, which are listed in Section 6.2 in the paper.
   * The benchmark suite, including benchmark drivers (i.e., programs that uses the B-trees and the skip lists).
 
 In addition, a git repository of [UMap](https://github.com/farmalloc/umap), a user-level page cache library, with our bugfix (commit `cb294ef`) is included.
@@ -68,7 +68,19 @@ option in `docker_seccomp.json` by comparing it with the [default setting](https
 <details>
 <summary>Installation of pre-built Docker image</summary>
 
-A pre-built Docker image is available on [GitHub Container Registry](https://ghcr.io/farmalloc/collective_farmalloc).
+A pre-built Docker image is included in `artifact.zip`.
+You can install it with the following command.
+
+  1. Download `artifact.zip` from [here](https://drive.google.com/file/d/11Xq1n8MLgZBarGlHsE2SD8uEMtDwHIxs/view?usp=sharing)
+  2. `unzip artifact.zip`, where a `docker_image` file is extracted.
+  3. `docker load docker_image`
+
+</details>
+
+<details>
+<summary>Installation of pre-built Docker image from GitHub Container Repository</summary>
+
+A pre-built Docker image is also available on [GitHub Container Registry](https://ghcr.io/farmalloc/collective_farmalloc).
 You can pull it with the following command.
 
 ```bash
@@ -127,9 +139,9 @@ The following warnings may arise but are not problematic.
 #### Testing the Artifact
 
 Let's execute a benchmark program of a B-tree using our collective allocator library.
-Here, we use the `local+dfs` variant of the B-tree (see Section 5.2) and
-the "key-value store benchmark" in Section 5.1.1 with parameters $L=200$, $\alpha=1.3$ and $U=0.05$.
-This reproduces the result corresponding to the right most dark gray (purely-local & page-aware (dfs))
+Here, we use the `local+dfs` variant of the B-tree (see Section 6.2) and
+the "key-value store benchmark" in Section 6.1.1 with parameters $L=200$, $\alpha=1.3$ and $U=0.05$.
+This reproduces the result corresponding to the right most dark gray (local+dfs)
 plot in Figure 10c in the paper.
 
 ```bash
@@ -150,11 +162,11 @@ This is the end of the getting started guide.
 
 ## Overview of Claims
 
-Our main claims are the followings, as described at the beginning of Section 5 in the paper.
+Our main claims are the followings, as described at the beginning of Section 6 in the paper.
 
 1.  Our collective allocator abstraction is sufficiently expressive to implement various object placement strategies in a modular manner.
     * step-by-step instructions -> [Expressiveness](#expressiveness)
-2.  Using the collective allocator appropriately for object placement aware of the far-memory model actually benefits to reducing remote swapping.
+2.  The collective allocator abstraction facilitates implementing the object placement strategies of containers such that they actually suppress remote swapping.
     * step-by-step instructions -> [Reduction of Remote Swapping](#reduction-of-remote-swapping)
 
 
@@ -164,22 +176,19 @@ Our main claims are the followings, as described at the beginning of Section 5 i
 Our claim regarding expressiveness is:
 > Our collective allocator abstraction is sufficiently expressive to implement various object placement strategies in a modular manner.
 
-This is supported by the following facts:
+This is supported by the fact that we successfully implemented B-trees and skip lists with various object placement strategies using the collective allocator with small modifications on ordinary implementations of them. (examples in Section 5 and evaluation in Section 6.2)
 
-  * **Container implementations**: we successfully implemented B-trees and skip lists with various object placement strategies using the collective allocator with small modifications on ordinary implementations of them. (examples in Section 4 and evaluation in Section 5.2)
-  * **Cross-page link analysis**: these implementations exhibited expected behaviors in the cross-page link analysis (Section 5.1.2) with respect to object placement strategies. (Section 5.3)
-
-Following subsections describes how to confirm these facts.
+The Following subsection describes how to confirm this fact.
 
 #### Container Implementations
 
 Here, we show our implementations in this artifact match the examples in 
-Section 4 (Figures 7, 8, 13, and 15)
-and the evaluation in Section 5.2 (Table 3).
+Section 5 (Figures 7, 8, 12, and 14)
+and the evaluation in Section 6.2 (Table 3).
 
 The implementations of the B-tree and the skip list are placed in
 the `include/far_memory_container` directory. Correspondence between
-the container variant names in the paper (listed in Section 5.2) and 
+the container variant names in the paper (listed in Section 6.2) and 
 source files are summarized in the following table.
 
 |container variant|implementation|
@@ -193,20 +202,20 @@ source files are summarized in the following table.
 
 Note that `hint` B-tree and `hint` skip list do not use the collective allocator. They use the standard C++ allocator.
 
-##### Correspondence between Examples in Section 4 and the Source Code
+##### Correspondence between Examples in Section 5 and the Source Code
 
-In Section 4 in the paper, we picked `local+dfs` B-tree as an example to
-demonstrate how to use our collective allocator using Figures 7, 8, and 13.
-Figure 15 also demonstrates it using `local+vEB` B-tree as an example.
+In Section 5 in the paper, we picked `local+dfs` B-tree as an example to
+demonstrate how to use our collective allocator using Figures 7, 8, and 12.
+Figure 14 also demonstrates it using `local+vEB` B-tree as an example.
 The functions in the figures correspond to the functions in `include/far_memory_container/blocked/b_tree.ipp`.
 
 |figure|function in figure|function in `b_tree.ipp`|
 |:-|:-|:-|
 |7 & 8 | `BTree::ins_rec` | `BTreeMap::insert_step` |
-|13    | `BTree::make_page_aware` | `BTreeMap::batch_block` |
-|13    | `BTree::traverse` | `BTreeMap::batch_block_step` |
-|15    | `BTree::make_page_aware` | `BTreeMap::batch_vEB` |
-|15    | `BTree::traverse` | `BTreeMap::batch_vEB_step` |
+|12    | `BTree::make_page_aware` | `BTreeMap::batch_block` |
+|12    | `BTree::traverse` | `BTreeMap::batch_block_step` |
+|14    | `BTree::make_page_aware` | `BTreeMap::batch_vEB` |
+|14    | `BTree::traverse` | `BTreeMap::batch_vEB_step` |
 
 <details>
 <summary>Line-by-line correspondence</summary>
@@ -215,42 +224,42 @@ Line-by-line correspondence for the significant lines are listed in the followin
 
 |figure|line in figure|line in `b_tree.ipp`|
 |-:|-:|-:|
-|7|18|232|
-|7|20, 21|254, 255|
-|7|22|233|
-|7|27|237, 326, 328|
-|7|29|247|
-|7|31, 32|254, 255, 327|
-|7|34|245|
-|7|35|247|
-|7|40|258|
-|7|41|259|
-|8|8|197, 206|
-|8|15, 16, 17|198, 234|
-|13|2|527|
-|13|3|528|
-|13|6|533, 534, 535|
-|13|7|539|
-|13|8|540|
-|13|10|541|
-|13|12|542|
-|13|13|544|
-|15|2|560|
-|15|3|561|
-|15|6|566|
-|15|8|570|
-|15|9|571|
-|15|11|572|
-|15|13|573|
-|15|14|575|
-|15|17|580|
-|15|19|581|
-|15|21|589|
-|15|22|590, 592|
+|7|18|175|
+|7|20, 21|197, 198|
+|7|22|176|
+|7|27|180, 269, 271|
+|7|29|190|
+|7|31, 32|197, 198, 270|
+|7|34|188|
+|7|35|190|
+|7|40|201|
+|7|41|202|
+|8|8|140, 149|
+|8|15, 16, 17|141, 177|
+|12|2|470|
+|12|3|471|
+|12|6|476, 477, 478|
+|12|7|482|
+|12|8|483|
+|12|10|484|
+|12|12|485|
+|12|13|487|
+|14|2|503|
+|14|3|504|
+|14|6|509|
+|14|8|513|
+|14|9|514|
+|14|11|515|
+|14|13|516|
+|14|14|518|
+|14|17|523|
+|14|19|524|
+|14|21|532|
+|14|22|533, 535|
 
 </details>
 
-##### Amount of Code Difference (Table 3 in Section 5.3)
+##### Amount of Code Difference (Table 3 in Section 6.3)
 
 In Table 3 in the paper, we counted the number of different lines between the baselines
 and the containers using the collective allocator using the `diff` command. Here the 
@@ -309,7 +318,20 @@ the separate implementation.
 |`local+page` skip list|`for_code_diff/skip_list/local_page`|
 |`page` skip list|`for_code_diff/skip_list/page`|
 
-#### Cross-Page Link Analysis (Figure 9 in Section 5.2)
+### Reduction of Remote Swapping
+
+Our claim regarding reduction of remote swapping is:
+
+> The collective allocator abstraction facilitates implementing the object placement strategies of containers such that they actually suppress remote swapping.
+
+This claim is supported by the following experimentation in Section 6.3:
+
+  * **Cross-page link analysis**: we applied the cross-page link analysis (Section 6.1.2) with respect to object placement strategies.
+  * **Key-value store benchmark**: we executed the key-value store benchmark programs (Section 6.1.1) and counted the number of swapping.
+
+Following subsections describe how to reproduce the results of these experiments.
+
+#### Cross-Page Link Analysis (Figure 9)
 
 The files `src/analyze_edges_*.cpp` are benchmark drivers for the cross-page link analysis.
 Through the [Build](#build) section in the Getting Started Guide, they have already been compiled
@@ -363,27 +385,20 @@ scripts/analyze_edges_all.sh
 scripts/figure9.sh
 ```
 
-### Reduction of Remote Swapping
-
-Our claim regarding reduction of remote swapping is:
-
-> Using the collective allocator appropriately for object placement aware of the far-memory model actually benefits to reducing remote swapping.
-
-This claim is supported by the experimentation in Section 5.3, where we
-executed the benchmark programs and counted the number of swapping.
+#### Key-Value Store Benchmarks (Figures 10 and 11)
 
 The remaining files in the `src` directory (those that do not start with `analyze_edges`)
 are benchmark drivers for this experimentation.  Through the [Build](#build)
 section in the Getting Started Guide, they have already been compiled into the `build` directory.
 
 The benchmark programs can be executed though `scripts/kvs_benchmark.sh`. A single execution
-gives a number for a single data point in Figures 10, 11, and 12. We have already
+gives a number for a single data point in Figures 10 and 11. We have already
 tried it in [Testing the Artifact](#testing-the-artifact) section in the Getting Started
 Guide.
 
 In short, the following command will give the number of swapping for the
 `local+dfs` variant of the B-tree with $L=200$, $\alpha=1.3$ and $U=0.05$,
-corresponding to the right most dark gray (purely-local & page-aware (dfs))
+corresponding to the right most dark gray (local+dfs)
 plot in Figure 10c in the paper.
 
 ```bash
@@ -410,22 +425,22 @@ Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19`
 and `scripts/analyze_edges:27`, and to `NIteration` in `include/setting_basis.hpp:20` will
 reduce the execution time.
 
-##### Run All for Figures 10, 11, and 12
+##### Run All for Figures 10 and 11
 
 The `scripts/kvs_benchmark_all.sh` script executes the benchmark program for all container variants with
-all combinations of parameters to reproduce Figures 10, 11, and 12.
-The `scripts/figure_10_11_12.sh` script reproduces these figures.
+all combinations of parameters to reproduce Figures 10 and 11.
+The `scripts/figure_10_11.sh` script reproduces these figures.
 
 ```bash
 scripts/kvs_benchmark_all.sh
-scripts/figure_10_11_12.sh
+scripts/figure_10_11.sh
 ```
 
 Note that a single execution of `scripts/kvs_benchmark_all.sh` will take about 28 hours.
 Giving a smaller number to `NumElements` in `include/setting_basis.hpp:19`
 and `scripts/analyze_edges:27`, and to `NIteration` in `include/setting_basis.hpp:20` will
 reduce the execution time.
-For example, execution will complete in 16 minutes if we set `NumElements` and `NIteration` to 134217 and 100, respectively.  However, the results will be totally different from Figures 10, 11, and 12.
+For example, execution will complete in 16 minutes if we set `NumElements` and `NIteration` to 134217 and 100, respectively.  However, the results will be totally different from Figures 10 and 11.
 
 ## Tutorial to Use Collective Allocator
 
@@ -580,7 +595,7 @@ template <class T, class Alloc> struct LinkedList {
 ### Step 3. Purely-Local Aware Placement
 
 Now, we modify the `LinkedList` to use local memory.
-This corresponds to the purely-local aware placement (Section 2.2 and 4.3) in the paper.
+This corresponds to the purely-local aware placement (Section 2.2 and 5.3) in the paper.
 
 Our placement strategy here is to place as many nodes as possible in local memory,
 giving higher priority to the closer node to the header.
@@ -797,20 +812,3 @@ template <class T, class Alloc> struct LinkedList {
   }
 };
 ```
-
-
-## Errata of the Paper
-
-There are some typos and minor errors in the Evaluation section of the submission paper.
-This document is based on the version before error correction.
-
-* The "Read benchmark" defined in Section 5.1.1 is obsolete and not used.
-* The legends of Figs. 10 and 11 contain typos to be corrected as
-  * `hint-only` -> `hint`
-  * `purely-local aware` -> `local`
-  * `page-aware (dfs)` -> `dfs`
-  * `purely-local and page-aware (dfs)` -> `local+dfs`
-  * `page-aware (vEB)` -> `vEB`
-  * `purely-local and page-aware (vEB)` -> `local+vEB`
-* The caption of Figure 16 is incorrect: it is not for skip list variants but B-tree variants.
-* Figure 11 is not referred to: the second paragraph of Section 5.3 should have referred to both Figs. 10 and 11.

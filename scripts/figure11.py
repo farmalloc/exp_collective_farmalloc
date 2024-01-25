@@ -27,10 +27,10 @@ def main():
              ("construction_duration", np.int64), ("query_duration", np.int64), ("query_read_cnt", np.int64), ("query_write_cnt", np.int64)]
 
     data = {}
-    data["page-aware (dfs)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_dfs_btree.log"), dtype=dtype, ndmin=2)
-    data["purely-local & page-aware (dfs)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local+dfs_btree.log"), dtype=dtype, ndmin=2)
-    data["page-aware (vEB)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_veb_btree.log"), dtype=dtype, ndmin=2)
-    data["purely-local & page-aware (vEB)"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local+veb_btree.log"), dtype=dtype, ndmin=2)
+    data["page"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_page_skiplist.log"), dtype=dtype, ndmin=2)
+    data["local"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local_skiplist.log"), dtype=dtype, ndmin=2)
+    data["local+page"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_local+page_skiplist.log"), dtype=dtype, ndmin=2)
+    data["hint"] = np.loadtxt(os.path.join(log_dir, "kvs_benchmark_with_hint_skiplist.log"), dtype=dtype, ndmin=2)
 
     for variant in data.keys():
         used_local_buf = (data[variant]["PurelyLocalCapacity"] + data[variant]["UMAP_BUFSIZE"]
@@ -79,7 +79,7 @@ def main():
             bbox_inches="tight",
         )
 
-        legendfig.legend(map(lambda x: x[0], lines), labels, ncol=2).get_frame().set_alpha(1.0)
+        legendfig.legend(map(lambda x: x[0], lines), labels, ncol=4).get_frame().set_alpha(1.0)
         legendfig.savefig(
             os.path.join(
                 os.path.dirname(__file__), f"../charts/figure11_legend.pdf"
