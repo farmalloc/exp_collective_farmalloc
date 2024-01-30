@@ -1,6 +1,12 @@
 Artifact for "Collective Allocator Abstraction to Control Object Spatial Locality in C++"
 ===
 
+* Artifact for "Collective Allocator Abstraction to Control Object Spatial Locality in C++" published in Volume 8, Issue 3 of *The Art, Science, and Engineering of Programming*.
+  * authors: Takato Hideshima, Shigeyuki Sato, Tomoharu Ugawa
+* Link to artifact package: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10572554.svg)](https://doi.org/10.5281/zenodo.10572554)
+
+---
+
 This document contains
   * [Getting started guide](#getting-started-guide)
   * [List of claims](#overview-of-claims)
